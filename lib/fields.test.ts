@@ -119,17 +119,17 @@ describe('toEngineInputs', () => {
     expect(toEngineInputs(base).otherAssets).toHaveLength(0)
   })
 
-  it('includes the house and business cash once they have a value', () => {
+  it('includes downsizing and business cash once they have a value', () => {
     const inputs = toEngineInputs({
       ...base,
       values: {
         ...DEFAULT_VALUES,
-        houseSaleAmount: 200000,
+        downsizeReleaseAmount: 200000,
         businessCashAmount: 50000,
       },
     })
     expect(inputs.otherAssets.map((a) => a.label)).toEqual([
-      'House sale',
+      'Moving somewhere smaller',
       'Business cash',
     ])
   })

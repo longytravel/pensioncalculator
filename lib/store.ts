@@ -209,11 +209,11 @@ export function toEngineInputs(state: {
   const v = state.values
 
   const otherAssets: CalculatorInputs['otherAssets'] = []
-  if (v.houseSaleAmount > 0) {
+  if (v.downsizeReleaseAmount > 0) {
     otherAssets.push({
-      label: 'House sale',
-      netAmount: v.houseSaleAmount,
-      ageReceived: v.houseSaleAge,
+      label: 'Moving somewhere smaller',
+      netAmount: v.downsizeReleaseAmount,
+      ageReceived: v.downsizeAge,
     })
   }
   if (v.businessCashAmount > 0) {

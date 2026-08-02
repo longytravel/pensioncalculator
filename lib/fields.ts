@@ -32,21 +32,21 @@ export const FIELDS = {
     label: 'How old are you?',
     helper: 'We use this to work out how long your money has to grow.',
     explainer:
-      'Time is the single biggest thing working in your favour. Money paid in at 45 has over twenty years to grow before you need it — money paid in at 60 has far less. That is why starting, even small, beats waiting until you can afford more.',
+      'Time is what does the heavy lifting. There is still a real stretch between now and stopping work — and the years just before retirement are usually the highest-earning ones, which makes them the best years to pay in properly. Starting now beats waiting until it feels affordable.',
     min: 18,
     max: 80,
     step: 1,
     largeStep: 5,
     format: 'age',
-    default: 45,
+    default: 51,
   },
 
   retirementAge: {
     label: 'When would you like to stop working?',
     helper: 'You can change this later — try moving it and see what happens.',
     explainer:
-      'This is one of the most powerful sliders here. Working two years longer does three things at once: two more years of paying in, two more years of growth, and two fewer years of your money needing to last. You normally cannot touch a private pension before 55, and that rises to 57 in April 2028.',
-    min: 55,
+      'This is one of the most powerful sliders here. Working two years longer does three things at once: two more years of paying in, two more years of growth, and two fewer years your money has to stretch. Note the earliest you can touch a private pension is 57 from April 2028 — that rise will apply to you.',
+    min: 57,
     max: 80,
     step: 1,
     format: 'age',
@@ -168,25 +168,88 @@ export const FIELDS = {
     default: 0,
   },
 
-  houseSaleAmount: {
-    label: 'If you sell your house, what would you clear?',
-    helper: 'After selling costs and after buying somewhere smaller to live.',
+  houseValue: {
+    label: 'What is your house worth?',
+    helper: 'Roughly what it would sell for today.',
     explainer:
-      'This is the number people most often get wrong, because it is easy to think of the sale price rather than what is actually left over. Take the likely sale price, subtract what a smaller place would cost, then subtract roughly 2–3% for estate agent and legal fees and the cost of moving. What remains is the figure to put here. If you would rent instead, put the full proceeds in — but remember the rent becomes a cost in retirement.',
+      'We keep the house value and the mortgage separate so you can see your equity clearly, and so you can watch what happens as the mortgage comes down. We deliberately do not forecast house prices — nobody can, and a projection that pretends to would be misleading.',
+    min: 0,
+    max: 3000000,
+    step: 5000,
+    largeStep: 50000,
+    format: 'gbp',
+    default: 400000,
+  },
+
+  mortgageBalance: {
+    label: 'How much is left on the mortgage?',
+    helper: 'Put zero if it is paid off.',
+    explainer:
+      'This matters more than people expect. Every retirement income figure you will see quoted — including the lifestyle cards in this tool — assumes you own your home outright with nothing left to pay. If you are still paying a mortgage in retirement, you need meaningfully more income than those figures suggest.',
+    min: 0,
+    max: 2000000,
+    step: 1000,
+    largeStep: 25000,
+    format: 'gbp',
+    default: 120000,
+  },
+
+  mortgageRate: {
+    label: 'What interest rate are you paying?',
+    helper: 'On your current deal. If unsure, 4.5% is a reasonable guess.',
+    explainer:
+      'The rate decides how much of each payment clears the debt and how much simply disappears in interest. It also sets the bar for overpaying: paying down a mortgage at 5% is a guaranteed 5% return, which is a genuinely strong, risk-free result and worth comparing against what you might expect from investing instead.',
+    min: 0,
+    max: 0.12,
+    step: 0.0005,
+    format: 'percent',
+    default: 0.045,
+  },
+
+  mortgageYearsLeft: {
+    label: 'How many years left to run?',
+    helper: 'On the current repayment schedule.',
+    explainer:
+      'Worth checking against your retirement age. Carrying a mortgage past the day you stop working is common, but it changes the sums considerably — the payment continues while the salary stops.',
+    min: 0,
+    max: 40,
+    step: 1,
+    format: 'years',
+    default: 12,
+  },
+
+  mortgageOverpayment: {
+    label: 'Could you overpay each month?',
+    helper: 'Try moving this and watch the interest saved.',
+    explainer:
+      'Overpaying is one of the few genuinely risk-free returns available. Every pound off the balance saves you the interest that pound would have cost for the rest of the term. The trade-off is that money in a mortgage is hard to get back out, and it gets no tax relief — unlike a pension contribution. Most lenders allow overpayments of 10% of the balance a year without penalty, but check yours.',
+    min: 0,
+    max: 3000,
+    step: 25,
+    largeStep: 250,
+    format: 'gbp-monthly',
+    default: 0,
+  },
+
+  downsizeReleaseAmount: {
+    label: 'If you moved somewhere smaller, what would you free up?',
+    helper: 'The difference between selling yours and buying the next one.',
+    explainer:
+      'This is the number people most often get wrong, because it is tempting to think of the sale price rather than what is actually left over. Take the likely sale price, subtract what a smaller place would cost, then subtract roughly 2–3% for estate agent and legal fees, stamp duty and moving costs. What remains is the figure for this box. If you would rent instead, put in the full equity — but remember the rent then becomes a cost for the rest of your life.',
     min: 0,
     max: 1500000,
     step: 5000,
-    largeStep: 50000,
+    largeStep: 25000,
     format: 'gbp',
     default: 0,
   },
 
-  houseSaleAge: {
-    label: 'At what age would you sell?',
-    helper: 'Most people say the same age they stop working.',
+  downsizeAge: {
+    label: 'At what age would you move?',
+    helper: 'Most people say around the time they stop working.',
     explainer:
-      'Timing matters more than you might expect. Money that arrives at 67 has decades to support you; money that arrives at 80 has fewer years to cover but also less time to grow.',
-    min: 55,
+      'Timing matters more than you might expect. Money freed up at 67 has decades to support you; money freed up at 80 has fewer years to cover, but also far less time to grow first. It is also worth being honest about whether you actually want to move — a plan that depends on giving up a home you love is a fragile plan.',
+    min: 57,
     max: 95,
     step: 1,
     format: 'age',
