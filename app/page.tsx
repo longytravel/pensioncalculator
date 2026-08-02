@@ -1,65 +1,228 @@
-import Image from "next/image";
+'use client'
+
+/**
+ * Working preview of the calculator core.
+ *
+ * Not the finished seven-screen flow — this is the engine, the store and the
+ * slider wired together so the numbers can be seen and sanity-checked while the
+ * rest is built around them.
+ */
+
+import * as React from 'react'
+import {
+  useCalculatorStore,
+  useStoreHydrated,
+  toEngineInputs,
+} from '@/lib/store'
+import { project } from '@/lib/engine/project'
+import { EngineInputError } from '@/lib/engine/types'
+import { RETIREMENT_LIVING_STANDARDS } from '@/lib/engine/assumptions'
+import { CalculatorSlider } from '@/components/calculator-slider'
+import { Card } from '@/components/ui/card'
+import { Alert } from '@/components/ui/alert'
+import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
+
+const gbp = (n: number) =>
+  n.toLocaleString('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    maximumFractionDigits: 0,
+  })
+
+const SLIDERS: FieldName[] = [
+  'currentAge',
+  'retirementAge',
+  'personalMonthlyContribution',
+  'employerMonthlyContribution',
+  'avivaBalance',
+  'peoplesPensionBalance',
+  'targetIncome',
+]
 
 export default function Home() {
+  const store = useCalculatorStore()
+
+  // Saved figures only exist in the browser, so the server and the very first
+  // client render both use the defaults. Once persist has rehydrated we switch
+  // to her real numbers. Rendering the full page either way means no flash of
+  // an empty screen and no hydration mismatch.
+  const hydrated = useStoreHydrated()
+  const values = hydrated ? store.values : DEFAULT_VALUES
+
+  const { output, error } = React.useMemo(() => {
+    try {
+      return {
+        output: project(toEngineInputs({ ...store, values }), {
+          inRealTerms: store.inRealTerms,
+        }),
+        error: null as string | null,
+      }
+    } catch (e) {
+      return {
+        output: null,
+        error:
+          e instanceof EngineInputError ? e.message : 'Something went wrong.',
+      }
+    }
+  }, [store, values])
+  const moderate = RETIREMENT_LIVING_STANDARDS.uk.moderate.single
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Your retirement, in plain English
+        </h1>
+        <p className="mt-3 text-lg text-muted-foreground">
+          Move the sliders and watch what happens. Nothing is saved anywhere but
+          your own browser, and there are no wrong answers here.
+        </p>
+      </header>
+
+      {output && (
+        <Card className="mb-8 border-2 p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Where you&rsquo;re heading
+          </h2>
+
+          <p className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
+            About {gbp(output.gap.projectedNetIncome)} a year
+            <span className="mt-1 block text-lg font-normal text-muted-foreground">
+              that&rsquo;s {gbp(output.gap.projectedNetIncome / 12)} a month,
+              after tax, in today&rsquo;s money
+            </span>
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+
+          <div
+            className={`mt-5 rounded-xl p-4 ${
+              output.gap.onTrack
+                ? 'bg-emerald-50 dark:bg-emerald-950/40'
+                : 'bg-amber-50 dark:bg-amber-950/40'
+            }`}
+          >
+            {output.gap.onTrack ? (
+              <p className="text-lg">
+                <strong>You&rsquo;re on track.</strong> That&rsquo;s{' '}
+                {gbp(output.gap.gap)} a year more than you said you wanted.
+              </p>
+            ) : (
+              <>
+                <p className="text-lg">
+                  <strong>
+                    You&rsquo;re about {gbp(Math.abs(output.gap.gap) / 12)} a
+                    month short
+                  </strong>{' '}
+                  of the {gbp(output.gap.targetNetIncome)} a year you asked for.
+                </p>
+                <p className="mt-2 text-lg">
+                  Paying in an extra{' '}
+                  <strong>
+                    {gbp(output.gap.requiredExtraMonthlyContribution)} a month
+                  </strong>{' '}
+                  would close it.
+                </p>
+              </>
+            )}
+          </div>
+
+          <dl className="mt-6 grid grid-cols-3 gap-4 border-t pt-5 text-center">
+            {(['low', 'mid', 'high'] as const).map((s) => (
+              <div key={s}>
+                <dt className="text-sm text-muted-foreground">
+                  {s === 'mid'
+                    ? 'expected'
+                    : s === 'low'
+                      ? 'cautious'
+                      : 'optimistic'}
+                </dt>
+                <dd className="text-xl font-semibold tabular-nums">
+                  {gbp(output.scenarios[s].potAtRetirement)}
+                </dd>
+                {output.scenarios[s].potDepletionAge && (
+                  <dd className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                    runs out at {output.scenarios[s].potDepletionAge}
+                  </dd>
+                )}
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-center text-sm text-muted-foreground">
+            What your pensions could be worth when you stop working. Three
+            possibilities, not a promise.
+          </p>
+
+          {output.warnings.length > 0 && (
+            <Alert className="mt-5">
+              <ul className="list-inside list-disc space-y-1">
+                {output.warnings.map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+        </Card>
+      )}
+
+      {error && (
+        <Alert className="mb-8 border-destructive">
+          <p>{error}</p>
+        </Alert>
+      )}
+
+      <p className="mb-4 text-base text-muted-foreground">
+        For reference: research into what retired households actually spend puts
+        a &ldquo;moderate&rdquo; lifestyle for one person at about{' '}
+        <strong>{gbp(moderate)} a year</strong> — assuming no mortgage left to
+        pay.
+      </p>
+
+      <div className="space-y-4">
+        {SLIDERS.map((name) => (
+          <CalculatorSlider
+            key={name}
+            name={name}
+            value={values[name]}
+            onChange={(v) => store.setValue(name, v)}
+            suggestion={
+              store.suggestion?.field === name
+                ? {
+                    value: store.suggestion.value,
+                    rationale: store.suggestion.rationale,
+                  }
+                : null
+            }
+            onAcceptSuggestion={store.acceptSuggestion}
+            onDismissSuggestion={store.dismissSuggestion}
+          />
+        ))}
+      </div>
+
+      <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          This tool gives you information and estimates to help you think. It is
+          not financial advice, and it cannot know your full circumstances.
+          Figures are estimates, not guarantees, and investments can go down as
+          well as up. For free, impartial guidance try{' '}
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            className="underline"
+            href="https://www.moneyhelper.org.uk"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            MoneyHelper
           </a>
+          , or{' '}
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            className="underline"
+            href="https://www.moneyhelper.org.uk/en/pensions-and-retirement/pension-wise"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+            Pension Wise
+          </a>{' '}
+          once you turn 50.
+        </p>
+      </footer>
+    </main>
+  )
 }
