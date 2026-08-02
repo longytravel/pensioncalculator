@@ -1,14 +1,20 @@
 'use client'
 
 /**
- * The calculator.
+ * The plan.
  *
- * Sliders, the headline gap number, and the assistant. Not yet the full
- * seven-screen flow — this is the working core while the rest is built.
+ * The projected figure is pinned to the top so it never leaves the screen while
+ * she changes anything — watching the number move is the whole point.
+ *
+ * Below it, everything she owns is grouped by what it actually is rather than
+ * by what the engine needs: what she wants, her two named pensions, what she
+ * pays in, her home, and the business.
  */
 
 import * as React from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
+
 import {
   useCalculatorStore,
   useStoreHydrated,
@@ -16,10 +22,11 @@ import {
 } from '@/lib/store'
 import { project } from '@/lib/engine/project'
 import { EngineInputError } from '@/lib/engine/types'
-import { RETIREMENT_LIVING_STANDARDS } from '@/lib/engine/assumptions'
+import { equity, clearedAtAge } from '@/lib/engine/mortgage'
+import { companyContributionsAvailable } from '@/lib/engine/contractor'
 import { CalculatorSlider } from '@/components/calculator-slider'
+import { LiveHeader } from '@/components/live-header'
 import { Assistant } from '@/components/assistant'
-import { Card } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
 
@@ -30,23 +37,77 @@ const gbp = (n: number) =>
     maximumFractionDigits: 0,
   })
 
-const SLIDERS: FieldName[] = [
-  'currentAge',
-  'retirementAge',
-  'personalMonthlyContribution',
-  'employerMonthlyContribution',
-  'avivaBalance',
-  'peoplesPensionBalance',
-  'houseValue',
-  'mortgageBalance',
-  'targetIncome',
+interface Section {
+  id: string
+  title: string
+  blurb: string
+  fields: FieldName[]
+  /** Open by default — the ones she most needs to see. */
+  open?: boolean
+}
+
+const SECTIONS: Section[] = [
+  {
+    id: 'want',
+    title: 'What you actually want',
+    blurb:
+      'Nobody can tell you what to pay in until we know what you are aiming at. Start here.',
+    fields: ['targetIncome', 'retirementAge', 'planningAge'],
+    open: true,
+  },
+  {
+    id: 'paying',
+    title: 'What goes in each month',
+    blurb:
+      'The two boxes that move your number the most. The second one is the interesting one.',
+    fields: ['personalMonthlyContribution', 'employerMonthlyContribution'],
+    open: true,
+  },
+  {
+    id: 'pensions',
+    title: 'The two pensions you already have',
+    blurb: 'Rough figures are fine. You can check the exact ones later.',
+    fields: [
+      'avivaBalance',
+      'peoplesPensionBalance',
+      'annualChargeRate',
+      'statePensionAge',
+      'qualifyingYears',
+    ],
+    open: true,
+  },
+  {
+    id: 'home',
+    title: 'Your house',
+    blurb:
+      'You thought of this as your lump sum. Let us see what it is actually worth to you.',
+    fields: [
+      'houseValue',
+      'mortgageBalance',
+      'mortgageRate',
+      'mortgageYearsLeft',
+      'mortgageOverpayment',
+      'downsizeReleaseAmount',
+      'downsizeAge',
+    ],
+  },
+  {
+    id: 'business',
+    title: 'The business and your savings',
+    blurb: 'Anything else that will be there when you stop working.',
+    fields: [
+      'businessCashAmount',
+      'businessCashAge',
+      'cashIsaBalance',
+      'cashIsaMonthly',
+      'salary',
+      'currentAge',
+    ],
+  },
 ]
 
 export default function Plan() {
   const store = useCalculatorStore()
-
-  // Saved figures only exist in the browser, so the server and the first
-  // client render both use the defaults, then swap once persist rehydrates.
   const hydrated = useStoreHydrated()
   const values = hydrated ? store.values : DEFAULT_VALUES
 
@@ -67,177 +128,258 @@ export default function Plan() {
     }
   }, [store, values])
 
-  const moderate = RETIREMENT_LIVING_STANDARDS.uk.moderate.single
+  const homeEquity = equity(values.houseValue, values.mortgageBalance)
+  const mortgageEnds = clearedAtAge(
+    {
+      balance: values.mortgageBalance,
+      annualRate: values.mortgageRate,
+      yearsRemaining: values.mortgageYearsLeft,
+      monthlyOverpayment: values.mortgageOverpayment,
+    },
+    values.currentAge,
+  )
+  const company = companyContributionsAvailable(store.workingArrangement)
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
-      <Link
-        href="/"
-        className="eyebrow text-xs text-muted-foreground underline"
-      >
-        &larr; Back to the start
-      </Link>
+    <>
+      <LiveHeader output={output} />
 
-      <header className="mt-4 mb-8">
-        <p className="eyebrow text-sm text-muted-foreground">Your money plan</p>
-        <h1 className="mt-1 text-4xl font-extrabold uppercase sm:text-5xl">
-          Where you stand
-        </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Move the sliders and watch what happens. Nothing is saved anywhere but
-          your own browser, and there are no wrong answers here.
-        </p>
-      </header>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
+        <Link
+          href="/"
+          className="eyebrow text-xs text-muted-foreground underline"
+        >
+          &larr; Back to the start
+        </Link>
 
-      {output && (
-        <Card className="mb-8 border-2 p-6">
-          <h2 className="eyebrow text-sm text-muted-foreground">On track for</h2>
+        {error && (
+          <Alert className="mt-4 border-destructive">
+            <p>{error}</p>
+          </Alert>
+        )}
 
-          <p className="mt-2 leading-none">
-            <span className="figure text-5xl sm:text-6xl">
-              {gbp(output.gap.projectedNetIncome / 12)}
-            </span>
-            <span className="ml-2 text-xl text-muted-foreground">a month</span>
-            <span className="mt-2 block text-base font-normal text-muted-foreground">
-              after tax, in today&rsquo;s money &mdash; that&rsquo;s{' '}
-              {gbp(output.gap.projectedNetIncome)} a year
-            </span>
-          </p>
-
-          <div
-            className={`mt-5 border-l-4 p-4 ${
-              output.gap.onTrack
-                ? 'border-l-foreground bg-muted'
-                : 'border-l-destructive bg-muted'
-            }`}
-          >
-            {output.gap.onTrack ? (
-              <p className="text-lg">
-                <strong>You&rsquo;re on track.</strong> That&rsquo;s{' '}
-                {gbp(output.gap.gap)} a year more than you said you wanted.
-              </p>
-            ) : (
-              <>
-                <p className="text-lg">
-                  <strong>
-                    You&rsquo;re about {gbp(Math.abs(output.gap.gap) / 12)} a
-                    month short
-                  </strong>{' '}
-                  of the {gbp(output.gap.targetNetIncome)} a year you asked for.
-                </p>
-                <p className="mt-2 text-lg">
-                  Paying in an extra{' '}
-                  <strong>
-                    {gbp(output.gap.requiredExtraMonthlyContribution)} a month
-                  </strong>{' '}
-                  would close it.
-                </p>
-              </>
-            )}
-          </div>
-
-          <dl className="mt-6 grid grid-cols-3 gap-4 border-t pt-5 text-center">
-            {(['low', 'mid', 'high'] as const).map((s) => (
-              <div key={s}>
-                <dt className="eyebrow text-xs text-muted-foreground">
-                  {s === 'mid'
-                    ? 'expected'
-                    : s === 'low'
-                      ? 'cautious'
-                      : 'optimistic'}
-                </dt>
-                <dd className="figure mt-1 text-xl">
-                  {gbp(output.scenarios[s].potAtRetirement)}
-                </dd>
-                {output.scenarios[s].potDepletionAge && (
-                  <dd className="mt-1 text-xs font-semibold text-destructive">
-                    runs out at {output.scenarios[s].potDepletionAge}
-                  </dd>
+        {/* Where the money is actually coming from. */}
+        {output && (
+          <section className="mt-5 border bg-card p-5">
+            <h2 className="eyebrow text-xs text-muted-foreground">
+              Where it comes from
+            </h2>
+            <dl className="mt-3 space-y-2 text-base">
+              <Row
+                label="Your two pensions, by the time you stop"
+                value={gbp(output.scenarios.mid.potAtRetirement)}
+              />
+              <Row
+                label="Tax-free cash from that (25%)"
+                value={gbp(output.scenarios.mid.taxFreeLumpSum)}
+                muted
+              />
+              <Row
+                label="State Pension, every year from 67"
+                value={gbp(
+                  output.scenarios.mid.rows.find((r) => r.statePensionIncome > 0)
+                    ?.statePensionIncome ?? 0,
                 )}
-              </div>
-            ))}
-          </dl>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
-            What your pensions could be worth when you stop working. Three
-            possibilities, not a promise.
-          </p>
+              />
+              <Row
+                label="Equity in your house right now"
+                value={gbp(homeEquity)}
+              />
+              {values.downsizeReleaseAmount > 0 && (
+                <Row
+                  label={`Freed up by moving at ${values.downsizeAge}`}
+                  value={gbp(values.downsizeReleaseAmount)}
+                />
+              )}
+              {values.businessCashAmount > 0 && (
+                <Row
+                  label={`From the business at ${values.businessCashAge}`}
+                  value={gbp(values.businessCashAmount)}
+                />
+              )}
+              {values.cashIsaBalance > 0 && (
+                <Row label="Savings and ISAs" value={gbp(values.cashIsaBalance)} />
+              )}
+            </dl>
 
-          {output.warnings.length > 0 && (
-            <Alert className="mt-5">
-              <ul className="list-inside list-disc space-y-1">
-                {output.warnings.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
-            </Alert>
-          )}
-        </Card>
-      )}
+            {mortgageEnds !== null && (
+              <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
+                Your mortgage is paid off at{' '}
+                <strong className="text-foreground">{mortgageEnds}</strong>
+                {mortgageEnds <= values.retirementAge
+                  ? ' — before you stop working, which is what you want.'
+                  : ` — that is after you stop at ${values.retirementAge}, so the payments carry on without the income.`}
+              </p>
+            )}
+          </section>
+        )}
 
-      {error && (
-        <Alert className="mb-8 border-destructive">
-          <p>{error}</p>
-        </Alert>
-      )}
+        {/* The company-contribution route she is already chasing. */}
+        <section className="mt-4 border-l-4 border-l-foreground bg-muted p-5">
+          <h2 className="text-lg font-bold">
+            Can the business pay in instead of you?
+          </h2>
+          <p className="mt-2 text-base leading-relaxed">{company.explanation}</p>
+          <div className="mt-3">
+            <label
+              htmlFor="arrangement"
+              className="eyebrow block text-xs text-muted-foreground"
+            >
+              How are you working at the moment?
+            </label>
+            <select
+              id="arrangement"
+              value={store.workingArrangement}
+              onChange={(e) =>
+                store.setOption(
+                  'workingArrangement',
+                  e.target.value as typeof store.workingArrangement,
+                )
+              }
+              className="mt-1 h-12 w-full max-w-md rounded-xs border bg-card px-3 text-base"
+            >
+              <option value="unknown">I am not sure yet</option>
+              <option value="ltd_outside_ir35">
+                My own company, outside IR35
+              </option>
+              <option value="ltd_inside_ir35">
+                My own company, inside IR35
+              </option>
+              <option value="umbrella">Through an umbrella company</option>
+              <option value="employee">Employed on payroll</option>
+              <option value="sole_trader">Self-employed, no company</option>
+            </select>
+          </div>
+        </section>
 
-      <p className="mb-4 text-base text-muted-foreground">
-        For reference: research into what retired households actually spend puts
-        a &ldquo;moderate&rdquo; lifestyle for one person at about{' '}
-        <strong>{gbp(moderate)} a year</strong> &mdash; assuming no mortgage
-        left to pay.
-      </p>
-
-      <div className="space-y-4">
-        {SLIDERS.map((name) => (
-          <CalculatorSlider
-            key={name}
-            name={name}
-            value={values[name]}
-            onChange={(v) => store.setValue(name, v)}
-            suggestion={
-              store.suggestion?.field === name
-                ? {
-                    value: store.suggestion.value,
-                    rationale: store.suggestion.rationale,
+        <div className="mt-6 space-y-3">
+          {SECTIONS.map((section) => (
+            <Collapsible key={section.id} section={section}>
+              {section.fields.map((name) => (
+                <CalculatorSlider
+                  key={name}
+                  name={name}
+                  value={values[name]}
+                  onChange={(v) => store.setValue(name, v)}
+                  suggestion={
+                    store.suggestion?.field === name
+                      ? {
+                          value: store.suggestion.value,
+                          rationale: store.suggestion.rationale,
+                        }
+                      : null
                   }
-                : null
-            }
-            onAcceptSuggestion={store.acceptSuggestion}
-            onDismissSuggestion={store.dismissSuggestion}
+                  onAcceptSuggestion={store.acceptSuggestion}
+                  onDismissSuggestion={store.dismissSuggestion}
+                />
+              ))}
+            </Collapsible>
+          ))}
+        </div>
+
+        {output && output.warnings.length > 0 && (
+          <Alert className="mt-6">
+            <ul className="list-inside list-disc space-y-1">
+              {output.warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+
+        <div className="mt-8 h-[32rem]">
+          <Assistant />
+        </div>
+
+        <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            Information and estimates to help you think &mdash; not financial
+            advice. Figures are estimates, not guarantees, and investments can
+            go down as well as up. Free impartial guidance at{' '}
+            <a
+              className="underline"
+              href="https://www.moneyhelper.org.uk"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              MoneyHelper
+            </a>
+            , and{' '}
+            <a
+              className="underline"
+              href="https://www.moneyhelper.org.uk/en/pensions-and-retirement/pension-wise"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Pension Wise
+            </a>{' '}
+            is free to you from 50.
+          </p>
+        </footer>
+      </main>
+    </>
+  )
+}
+
+function Row({
+  label,
+  value,
+  muted,
+}: {
+  label: string
+  value: string
+  muted?: boolean
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className={muted ? 'text-muted-foreground' : ''}>{label}</dt>
+      <dd
+        className={`figure shrink-0 ${muted ? 'text-muted-foreground' : ''}`}
+      >
+        {value}
+      </dd>
+    </div>
+  )
+}
+
+function Collapsible({
+  section,
+  children,
+}: {
+  section: Section
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = React.useState(section.open ?? false)
+
+  return (
+    <section className="border bg-card">
+      <h2>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls={`${section.id}-content`}
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-muted"
+        >
+          <span>
+            <span className="block text-lg font-bold uppercase">
+              {section.title}
+            </span>
+            <span className="mt-0.5 block text-sm font-normal text-muted-foreground">
+              {section.blurb}
+            </span>
+          </span>
+          <ChevronDown
+            className={`size-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+            aria-hidden="true"
           />
-        ))}
-      </div>
-
-      <div className="mt-10 h-[32rem]">
-        <Assistant />
-      </div>
-
-      <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
-        <p>
-          This tool gives you information and estimates to help you think. It is
-          not financial advice, and it cannot know your full circumstances.
-          Figures are estimates, not guarantees, and investments can go down as
-          well as up. For free, impartial guidance try{' '}
-          <a
-            className="underline"
-            href="https://www.moneyhelper.org.uk"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            MoneyHelper
-          </a>
-          , or{' '}
-          <a
-            className="underline"
-            href="https://www.moneyhelper.org.uk/en/pensions-and-retirement/pension-wise"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Pension Wise
-          </a>
-          , free and government-backed from age 50.
-        </p>
-      </footer>
-    </main>
+        </button>
+      </h2>
+      {open && (
+        <div id={`${section.id}-content`} className="space-y-3 border-t p-3">
+          {children}
+        </div>
+      )}
+    </section>
   )
 }
