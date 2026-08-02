@@ -312,6 +312,61 @@ describe('decumulation methods', () => {
     }
   })
 
+  it('reports zero drawdown income once the pot is actually gone', () => {
+    // A tiny pot, no contributions, retirement at 46: the low scenario runs
+    // out of money decades before the planning age. The rows after that point
+    // must show no income — an earlier version kept reporting a phantom flat
+    // payment forever while the pot showed £0.
+    const out = project(
+      kirsten({
+        currentAge: 45,
+        retirementAge: 46,
+        planningAge: 95,
+        pensionPots: [
+          { provider: 'Aviva', balance: 5000, annualChargeRate: 0.005 },
+        ],
+        personalMonthlyContribution: 0,
+        statePension: { statePensionAge: 67, qualifyingYears: 0 },
+      }),
+    )
+
+    const low = out.scenarios.low
+    expect(low.potDepletionAge).toBeDefined()
+
+    const afterDepletion = low.rows.filter(
+      (r) => r.age > (low.potDepletionAge ?? Infinity),
+    )
+    expect(afterDepletion.length).toBeGreaterThan(0)
+    for (const row of afterDepletion) {
+      expect(row.total).toBe(0)
+      expect(row.drawdownGross).toBe(0)
+      // No NI record in this fixture, so no state pension either: nothing.
+      expect(row.incomeGross).toBe(0)
+    }
+  })
+
+  it('keeps annuity income flowing after the capital is spent', () => {
+    // An annuity is bought outright — the payments are the insurer's problem
+    // once the capital has gone, so income continues to the end of the plan.
+    const out = project(
+      kirsten({
+        decumulationMethod: 'annuity',
+        currentAge: 45,
+        retirementAge: 46,
+        planningAge: 95,
+        pensionPots: [
+          { provider: 'Aviva', balance: 5000, annualChargeRate: 0.005 },
+        ],
+        personalMonthlyContribution: 0,
+        statePension: { statePensionAge: 67, qualifyingYears: 0 },
+      }),
+    )
+
+    const lastRow = out.scenarios.low.rows.at(-1)
+    expect(lastRow?.drawdownGross ?? 0).toBeGreaterThan(0)
+    expect(out.scenarios.low.potDepletionAge).toBeUndefined()
+  })
+
   it('amortising to zero pays more than a safe withdrawal rate', () => {
     // Spending the pot down deliberately should beat a rate designed to
     // preserve it.

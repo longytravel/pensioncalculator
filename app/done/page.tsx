@@ -13,7 +13,13 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Check, Circle, ArrowUpRight } from 'lucide-react'
 
-import { useCalculatorStore, useStoreHydrated } from '@/lib/store'
+import {
+  useCalculatorStore,
+  useStoreHydrated,
+  toEngineInputs,
+} from '@/lib/store'
+import { project } from '@/lib/engine/project'
+import { ProjectionChart } from '@/components/projection-chart'
 import { advise } from '@/lib/advice'
 import { ActionPlan, AccountantPanel } from '@/components/advice-cards'
 import { Comparison } from '@/components/comparison'
@@ -57,6 +63,14 @@ export default function Done() {
     }
   }, [store, values])
 
+  const projection = React.useMemo(() => {
+    try {
+      return project(toEngineInputs({ ...store, values }), { inRealTerms: true })
+    } catch {
+      return null
+    }
+  }, [store, values])
+
   // Everything she told us she didn't know, plus anything she skipped past.
   const toFind = (Object.keys(store.unknown) as FieldName[]).filter(
     (f) => store.unknown[f],
@@ -73,7 +87,7 @@ export default function Done() {
   const d = advice.derived
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:px-6 lg:max-w-3xl">
       <p className="eyebrow text-xs text-muted-foreground">That&rsquo;s it</p>
       <h1 className="mt-1 text-3xl font-extrabold uppercase sm:text-4xl">
         Here&rsquo;s where you stand
@@ -106,6 +120,16 @@ export default function Done() {
           </p>
         )}
       </section>
+
+      {projection && (
+        <div className="mt-6">
+          <ProjectionChart
+            output={projection}
+            retirementAge={values.retirementAge}
+            planningAge={values.planningAge}
+          />
+        </div>
+      )}
 
       {/* The things she said she did not know, kept and tickable. */}
       {toFind.length > 0 && (

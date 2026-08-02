@@ -44,14 +44,14 @@ export function LiveHeader({ output }: { output: ProjectionOutput | null }) {
 
   return (
     <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="mx-auto max-w-3xl px-4 py-3 sm:px-6">
+      <div className="mx-auto max-w-4xl px-4 py-2 sm:px-6 sm:py-3">
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
             <p className="eyebrow text-[11px] text-muted-foreground">
               You&rsquo;re on track for
             </p>
             <p className="flex items-baseline gap-2 leading-none">
-              <span className="figure text-3xl sm:text-4xl">
+              <span className="figure text-2xl sm:text-4xl">
                 {gbp(monthly)}
               </span>
               <span className="text-sm text-muted-foreground">a month</span>
@@ -80,7 +80,7 @@ export function LiveHeader({ output }: { output: ProjectionOutput | null }) {
         </div>
 
         {/* Have versus need, at a glance. No interpretation required. */}
-        <div className="mt-2 h-2 w-full overflow-hidden bg-muted">
+        <div className="mt-1.5 h-1.5 w-full overflow-hidden bg-muted">
           <div
             className={`h-full transition-all duration-500 ${
               onTrack ? 'bg-foreground' : 'bg-destructive'
@@ -89,7 +89,7 @@ export function LiveHeader({ output }: { output: ProjectionOutput | null }) {
           />
         </div>
 
-        <p className="mt-1.5 text-xs text-muted-foreground">
+        <p className="mt-1 text-xs text-muted-foreground">
           {onTrack ? (
             <>You&rsquo;ve got enough for what you asked for.</>
           ) : output ? (

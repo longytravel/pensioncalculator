@@ -247,6 +247,11 @@ function runScenario(
     const nominalLumpSum =
       lumpSum * Math.pow(1 + assumptions.cpi, yearIndex + 1)
 
+    // What was actually withdrawn this year — set in the retired branch, and
+    // the same figure the pot update used, so a drained pot reports £0 income
+    // rather than a phantom flat payment forever.
+    let drawdownThisYear = 0
+
     if (!isRetired) {
       const escalationFactor = Math.pow(1 + escalation, yearIndex)
       const monthlyPersonal = personal * escalationFactor
@@ -297,7 +302,13 @@ function runScenario(
       const available = state.pension + state.isa
       const actualDrawdown = Math.min(nominalDrawdown, Math.max(0, available))
 
-      if (available <= 0 && potDepletionAge === undefined) {
+      // An annuity is bought with the capital and pays for life — the income
+      // keeps coming after the ledger shows the capital spent. Drawdown
+      // methods stop paying when the pot is actually empty.
+      const guaranteed = inputs.decumulationMethod === 'annuity'
+      drawdownThisYear = guaranteed ? nominalDrawdown : actualDrawdown
+
+      if (!guaranteed && available <= 0 && potDepletionAge === undefined) {
         potDepletionAge = age
       }
 
@@ -322,12 +333,7 @@ function runScenario(
     const nominalStatePension = spReceived
       ? statePension * Math.pow(1 + assumptions.cpi, yearsElapsed)
       : 0
-    const nominalDrawdownThisYear = isRetired
-      ? Math.min(
-          sustainableGrossDrawdown * Math.pow(1 + assumptions.cpi, yearIndex),
-          Math.max(0, state.pension + state.isa + sustainableGrossDrawdown),
-        )
-      : 0
+    const nominalDrawdownThisYear = drawdownThisYear
 
     const grossIncome = nominalStatePension + nominalDrawdownThisYear
     const netIncome = isRetired

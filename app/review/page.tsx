@@ -172,7 +172,8 @@ export default function Review() {
         />
       </div>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-4 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-4 sm:px-6 lg:max-w-5xl lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-12">
+        <div className="flex min-h-full flex-col lg:min-h-0">
         <p className="eyebrow text-[11px] text-muted-foreground">
           {CHAPTERS[page.chapter]} &middot; {index + 1} of {pages.length}
         </p>
@@ -197,8 +198,10 @@ export default function Review() {
             />
           ))}
 
+          {/* On a phone the learning sits under the question; on a big
+              screen it moves to the rail alongside. */}
           {insights.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:hidden">
               {insights.map((insight) => (
                 <InsightCard key={insight.id} insight={insight} />
               ))}
@@ -263,6 +266,30 @@ export default function Review() {
             <StartAgain />
           </div>
         </div>
+        </div>
+
+        {/* The desktop rail: same insights, beside the question instead of
+            buried under it. */}
+        <aside className="hidden lg:block lg:sticky lg:top-24 lg:pt-8">
+          {insights.length > 0 ? (
+            <div className="space-y-3">
+              <p className="eyebrow text-xs text-muted-foreground">
+                What this means for you
+              </p>
+              {insights.map((insight) => (
+                <InsightCard key={insight.id} insight={insight} />
+              ))}
+            </div>
+          ) : (
+            <div className="border bg-muted p-4 text-sm leading-relaxed text-muted-foreground">
+              <p className="eyebrow mb-2 text-xs">Worth knowing</p>
+              <p>
+                Rough answers are fine everywhere here. The plan updates the
+                moment you improve one later &mdash; nothing is locked in.
+              </p>
+            </div>
+          )}
+        </aside>
       </main>
 
       {/* Slides over rather than navigating away, so she keeps her place. */}

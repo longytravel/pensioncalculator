@@ -1,14 +1,11 @@
 'use client'
 
 /**
- * The plan.
+ * The plan — the full picture, in three tabs.
  *
- * The projected figure is pinned to the top so it never leaves the screen while
- * she changes anything — watching the number move is the whole point.
- *
- * Below it, everything she owns is grouped by what it actually is rather than
- * by what the engine needs: what she wants, her two named pensions, what she
- * pays in, her home, and the business.
+ * One 14,000-pixel scroll helped nobody. The projected figure stays pinned to
+ * the top on every tab; below it she picks the view: the number and where it
+ * comes from, the answers that drive it, or what to actually do about it.
  */
 
 import * as React from 'react'
@@ -29,6 +26,7 @@ import { LiveHeader } from '@/components/live-header'
 import { Assistant } from '@/components/assistant'
 import { Objectives } from '@/components/objectives'
 import { Guides } from '@/components/guides'
+import { ProjectionChart } from '@/components/projection-chart'
 import {
   ActionPlan,
   AccountantPanel,
@@ -47,6 +45,14 @@ const gbp = (n: number) =>
     currency: 'GBP',
     maximumFractionDigits: 0,
   })
+
+const TABS = [
+  { id: 'number', label: 'Your number' },
+  { id: 'answers', label: 'Your answers' },
+  { id: 'actions', label: 'What to do' },
+] as const
+
+type TabId = (typeof TABS)[number]['id']
 
 interface Section {
   id: string
@@ -125,6 +131,7 @@ export default function Plan() {
   const store = useCalculatorStore()
   const hydrated = useStoreHydrated()
   const values = hydrated ? store.values : DEFAULT_VALUES
+  const [tab, setTab] = React.useState<TabId>('number')
 
   const { output, error } = React.useMemo(() => {
     try {
@@ -152,244 +159,85 @@ export default function Plan() {
     }
   }, [store, values])
 
-  const homeEquity = equity(values.houseValue, values.mortgageBalance)
-  const mortgageEnds = clearedAtAge(
-    {
-      balance: values.mortgageBalance,
-      annualRate: values.mortgageRate,
-      yearsRemaining: values.mortgageYearsLeft,
-      monthlyOverpayment: values.mortgageOverpayment,
-    },
-    values.currentAge,
-  )
-  const company = companyContributionsAvailable(store.workingArrangement)
+  const switchTab = (next: TabId) => {
+    setTab(next)
+    window.scrollTo({ top: 0 })
+  }
 
   return (
     <>
       <LiveHeader output={output} />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
-        <Link
-          href="/"
-          className="eyebrow text-xs text-muted-foreground underline"
+      {/* The view switcher, directly under the pinned number. */}
+      <div className="border-b bg-background">
+        <div
+          className="mx-auto flex w-full max-w-4xl px-4 sm:px-6"
+          role="tablist"
+          aria-label="Views of your plan"
         >
-          &larr; Back to the start
-        </Link>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => switchTab(t.id)}
+              className={`min-h-12 flex-1 border-b-2 px-2 text-sm font-bold uppercase tracking-wide transition-colors sm:text-base ${
+                tab === t.id
+                  ? 'border-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-5 sm:px-6">
         {error && (
-          <Alert className="mt-4 border-destructive">
+          <Alert className="border-destructive">
             <p>{error}</p>
           </Alert>
         )}
 
-        <div className="mt-5">
-          <Objectives />
-        </div>
-
-        {/* Where the money is actually coming from. */}
-        {output && (
-          <section className="mt-5 border bg-card p-5">
-            <h2 className="eyebrow text-xs text-muted-foreground">
-              Where it comes from
-            </h2>
-            <dl className="mt-3 space-y-2 text-base">
-              <Row
-                label="Your two pensions, by the time you stop"
-                value={gbp(output.scenarios.mid.potAtRetirement)}
-              />
-              <Row
-                label="Tax-free cash from that (25%)"
-                value={gbp(output.scenarios.mid.taxFreeLumpSum)}
-                muted
-              />
-              <Row
-                label="State Pension, every year from 67"
-                value={gbp(
-                  output.scenarios.mid.rows.find((r) => r.statePensionIncome > 0)
-                    ?.statePensionIncome ?? 0,
-                )}
-              />
-              <Row
-                label="Equity in your house right now"
-                value={gbp(homeEquity)}
-              />
-              {values.downsizeReleaseAmount > 0 && (
-                <Row
-                  label={`Freed up by moving at ${values.downsizeAge}`}
-                  value={gbp(values.downsizeReleaseAmount)}
-                />
-              )}
-              {values.businessCashAmount > 0 && (
-                <Row
-                  label={`From the business at ${values.businessCashAge}`}
-                  value={gbp(values.businessCashAmount)}
-                />
-              )}
-              {values.cashIsaBalance > 0 && (
-                <Row label="Savings and ISAs" value={gbp(values.cashIsaBalance)} />
-              )}
-            </dl>
-
-            {mortgageEnds !== null && (
-              <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
-                Your mortgage is paid off at{' '}
-                <strong className="text-foreground">{mortgageEnds}</strong>
-                {mortgageEnds <= values.retirementAge
-                  ? ' — before you stop working, which is what you want.'
-                  : ` — that is after you stop at ${values.retirementAge}, so the payments carry on without the income.`}
-              </p>
-            )}
-          </section>
+        {tab === 'number' && (
+          <NumberTab
+            output={output}
+            values={values}
+            onFixAnswers={() => switchTab('answers')}
+          />
         )}
-
-        {/* The company-contribution route she is already chasing. */}
-        <section className="mt-4 border-l-4 border-l-foreground bg-muted p-5">
-          <h2 className="text-lg font-bold">
-            Can the business pay in instead of you?
-          </h2>
-          <p className="mt-2 text-base leading-relaxed">{company.explanation}</p>
-          <div className="mt-3">
-            <label
-              htmlFor="arrangement"
-              className="eyebrow block text-xs text-muted-foreground"
-            >
-              How are you working at the moment?
-            </label>
-            <select
-              id="arrangement"
-              value={store.workingArrangement}
-              onChange={(e) =>
-                store.setOption(
-                  'workingArrangement',
-                  e.target.value as typeof store.workingArrangement,
-                )
-              }
-              className="mt-1 h-12 w-full max-w-md rounded-xs border bg-card px-3 text-base"
-            >
-              <option value="unknown">I am not sure yet</option>
-              <option value="ltd_outside_ir35">
-                My own company, outside IR35
-              </option>
-              <option value="ltd_inside_ir35">
-                My own company, inside IR35
-              </option>
-              <option value="umbrella">Through an umbrella company</option>
-              <option value="employee">Employed on payroll</option>
-              <option value="sole_trader">Self-employed, no company</option>
-            </select>
+        {tab === 'answers' && <AnswersTab values={values} />}
+        {tab === 'actions' && advice && (
+          <div className="space-y-6">
+            <InsightList insights={advice.insights} />
+            <ActionPlan actions={advice.actions} />
+            <Comparison
+              destinations={compareDestinations({ ...store, values }, advice.derived)}
+              feeDrag={feeDrag({ ...store, values }, advice.derived)}
+              years={advice.derived.yearsToRetirement}
+            />
+            <AccountantPanel
+              questions={advice.accountantQuestions}
+              emailBody={advice.emailBody}
+            />
+            <Guides />
           </div>
-        </section>
-
-        <div className="mt-6 space-y-3">
-          {SECTIONS.map((section) => (
-            <Collapsible key={section.id} section={section}>
-              {section.extra === 'risk' && (
-                <div className="border bg-card p-5">
-                  <p className="text-lg font-semibold">
-                    How is your money invested?
-                  </p>
-                  <p className="mt-1 text-base text-muted-foreground">
-                    If you have never picked, you are almost certainly in the
-                    default fund, which is usually the middle one. Have a look
-                    at the guide below to find out for certain.
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(
-                      [
-                        ['cautious', 'Cautious / safe'],
-                        ['balanced', 'Balanced'],
-                        ['growth', 'Adventurous / growth'],
-                      ] as const
-                    ).map(([level, label]) => (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => store.setOption('fundRiskLevel', level)}
-                        aria-pressed={store.fundRiskLevel === level}
-                        className={`min-h-12 border px-4 py-2 text-base transition-colors ${
-                          store.fundRiskLevel === level
-                            ? 'border-foreground bg-primary text-primary-foreground'
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {section.fields.map((name) => (
-                <CalculatorSlider
-                  key={name}
-                  name={name}
-                  value={values[name]}
-                  onChange={(v) => store.setValue(name, v)}
-                  suggestion={
-                    store.suggestion?.field === name
-                      ? {
-                          value: store.suggestion.value,
-                          rationale: store.suggestion.rationale,
-                        }
-                      : null
-                  }
-                  onAcceptSuggestion={store.acceptSuggestion}
-                  onDismissSuggestion={store.dismissSuggestion}
-                />
-              ))}
-            </Collapsible>
-          ))}
-        </div>
-
-        {output && output.warnings.length > 0 && (
-          <Alert className="mt-6">
-            <ul className="list-inside list-disc space-y-1">
-              {output.warnings.map((w) => (
-                <li key={w}>{w}</li>
-              ))}
-            </ul>
-          </Alert>
         )}
 
-        {advice && (
-          <>
-            <div className="mt-6">
-              <InsightList insights={advice.insights} />
-            </div>
-
-            <div className="mt-6">
-              <ActionPlan actions={advice.actions} />
-            </div>
-
-            <div className="mt-6">
-              <Comparison
-                destinations={compareDestinations({ ...store, values }, advice.derived)}
-                feeDrag={feeDrag({ ...store, values }, advice.derived)}
-                years={advice.derived.yearsToRetirement}
-              />
-            </div>
-
-            <div className="mt-6">
-              <AccountantPanel
-                questions={advice.accountantQuestions}
-                emailBody={advice.emailBody}
-              />
-            </div>
-          </>
-        )}
-
-        <div className="mt-6">
-          <Guides />
-        </div>
-
-        <div className="mt-6 h-[32rem]">
+        <div className="mt-8 h-[32rem]">
           <Assistant />
         </div>
 
-        <div className="mt-6 border-t pt-4">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+          <Link href="/" className="min-h-11 text-sm underline">
+            &larr; Back to the start
+          </Link>
           <StartAgain />
         </div>
 
-        <footer className="mt-8 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
+        <footer className="mt-6 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
           <p>
             Information and estimates to help you think &mdash; not financial
             advice. Figures are estimates, not guarantees, and investments can
@@ -416,6 +264,220 @@ export default function Plan() {
         </footer>
       </main>
     </>
+  )
+}
+
+function NumberTab({
+  output,
+  values,
+  onFixAnswers,
+}: {
+  output: ReturnType<typeof project> | null
+  values: typeof DEFAULT_VALUES
+  onFixAnswers: () => void
+}) {
+  const homeEquity = equity(values.houseValue, values.mortgageBalance)
+  const mortgageEnds = clearedAtAge(
+    {
+      balance: values.mortgageBalance,
+      annualRate: values.mortgageRate,
+      yearsRemaining: values.mortgageYearsLeft,
+      monthlyOverpayment: values.mortgageOverpayment,
+    },
+    values.currentAge,
+  )
+
+  return (
+    <div className="space-y-5">
+      <Objectives />
+
+      {output && (
+        <ProjectionChart
+          output={output}
+          retirementAge={values.retirementAge}
+          planningAge={values.planningAge}
+        />
+      )}
+
+      {/* Where the money is actually coming from. */}
+      {output && (
+        <section className="border bg-card p-5">
+          <h2 className="eyebrow text-xs text-muted-foreground">
+            Where it comes from
+          </h2>
+          <dl className="mt-3 space-y-2 text-base">
+            <Row
+              label="Your two pensions, by the time you stop"
+              value={gbp(output.scenarios.mid.potAtRetirement)}
+            />
+            <Row
+              label="Tax-free cash from that (25%)"
+              value={gbp(output.scenarios.mid.taxFreeLumpSum)}
+              muted
+            />
+            <Row
+              label="State Pension, every year from 67"
+              value={gbp(
+                output.scenarios.mid.rows.find((r) => r.statePensionIncome > 0)
+                  ?.statePensionIncome ?? 0,
+              )}
+            />
+            <Row
+              label="Equity in your house right now"
+              value={gbp(homeEquity)}
+            />
+            {values.downsizeReleaseAmount > 0 && (
+              <Row
+                label={`Freed up by moving at ${values.downsizeAge}`}
+                value={gbp(values.downsizeReleaseAmount)}
+              />
+            )}
+            {values.businessCashAmount > 0 && (
+              <Row
+                label={`From the business at ${values.businessCashAge}`}
+                value={gbp(values.businessCashAmount)}
+              />
+            )}
+            {values.cashIsaBalance > 0 && (
+              <Row label="Savings and ISAs" value={gbp(values.cashIsaBalance)} />
+            )}
+          </dl>
+
+          {mortgageEnds !== null && (
+            <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
+              Your mortgage is paid off at{' '}
+              <strong className="text-foreground">{mortgageEnds}</strong>
+              {mortgageEnds <= values.retirementAge
+                ? ' — before you stop working, which is what you want.'
+                : ` — that is after you stop at ${values.retirementAge}, so the payments carry on without the income.`}
+            </p>
+          )}
+        </section>
+      )}
+
+      {output && output.warnings.length > 0 && (
+        <Alert>
+          <ul className="list-inside list-disc space-y-1">
+            {output.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      <button
+        type="button"
+        onClick={onFixAnswers}
+        className="btn-square flex h-12 w-full items-center justify-center border text-sm font-bold uppercase tracking-wide transition-colors hover:bg-muted"
+      >
+        Change what&rsquo;s behind these numbers
+      </button>
+    </div>
+  )
+}
+
+function AnswersTab({ values }: { values: typeof DEFAULT_VALUES }) {
+  const store = useCalculatorStore()
+  const company = companyContributionsAvailable(store.workingArrangement)
+
+  return (
+    <div className="space-y-4">
+      {/* The company-contribution route she is already chasing. */}
+      <section className="border-l-4 border-l-foreground bg-muted p-5">
+        <h2 className="text-lg font-bold">
+          Can the business pay in instead of you?
+        </h2>
+        <p className="mt-2 text-base leading-relaxed">{company.explanation}</p>
+        <div className="mt-3">
+          <label
+            htmlFor="arrangement"
+            className="eyebrow block text-xs text-muted-foreground"
+          >
+            How are you working at the moment?
+          </label>
+          <select
+            id="arrangement"
+            value={store.workingArrangement}
+            onChange={(e) =>
+              store.setOption(
+                'workingArrangement',
+                e.target.value as typeof store.workingArrangement,
+              )
+            }
+            className="mt-1 h-12 w-full max-w-md rounded-xs border bg-card px-3 text-base"
+          >
+            <option value="unknown">I am not sure yet</option>
+            <option value="ltd_outside_ir35">
+              My own company, outside IR35
+            </option>
+            <option value="ltd_inside_ir35">
+              My own company, inside IR35
+            </option>
+            <option value="umbrella">Through an umbrella company</option>
+            <option value="employee">Employed on payroll</option>
+            <option value="sole_trader">Self-employed, no company</option>
+          </select>
+        </div>
+      </section>
+
+      {SECTIONS.map((section) => (
+        <Collapsible key={section.id} section={section}>
+          {section.extra === 'risk' && (
+            <div className="border bg-card p-5 lg:col-span-2">
+              <p className="text-lg font-semibold">
+                How is your money invested?
+              </p>
+              <p className="mt-1 text-base text-muted-foreground">
+                If you have never picked, you are almost certainly in the
+                default fund, which is usually the middle one. Have a look at
+                the guide below to find out for certain.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    ['cautious', 'Cautious / safe'],
+                    ['balanced', 'Balanced'],
+                    ['growth', 'Adventurous / growth'],
+                  ] as const
+                ).map(([level, label]) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => store.setOption('fundRiskLevel', level)}
+                    aria-pressed={store.fundRiskLevel === level}
+                    className={`min-h-12 border px-4 py-2 text-base transition-colors ${
+                      store.fundRiskLevel === level
+                        ? 'border-foreground bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {section.fields.map((name) => (
+            <CalculatorSlider
+              key={name}
+              name={name}
+              value={values[name]}
+              onChange={(v) => store.setValue(name, v)}
+              suggestion={
+                store.suggestion?.field === name
+                  ? {
+                      value: store.suggestion.value,
+                      rationale: store.suggestion.rationale,
+                    }
+                  : null
+              }
+              onAcceptSuggestion={store.acceptSuggestion}
+              onDismissSuggestion={store.dismissSuggestion}
+            />
+          ))}
+        </Collapsible>
+      ))}
+    </div>
   )
 }
 
@@ -474,7 +536,10 @@ function Collapsible({
         </button>
       </h2>
       {open && (
-        <div id={`${section.id}-content`} className="space-y-3 border-t p-3">
+        <div
+          id={`${section.id}-content`}
+          className="grid gap-3 border-t p-3 lg:grid-cols-2"
+        >
           {children}
         </div>
       )}
