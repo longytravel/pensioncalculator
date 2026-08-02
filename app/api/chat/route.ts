@@ -28,12 +28,15 @@ export const MODEL_ID = 'gpt-5.6-luna'
  * Reasoning effort is always passed explicitly.
  *
  * OpenAI's docs and Vercel's gateway docs disagree about Luna's default, and a
- * live test showed omitting it produces reasoning tokens — so relying on the
- * default would make the status bar lie. 'low' suits this workload: the
- * questions are explanatory rather than analytical, and the figures are
- * computed by the engine, not by the model.
+ * live test showed omitting it still produces reasoning tokens — so relying on
+ * the default would make the status bar lie.
+ *
+ * Raised from 'low' to 'medium'. At low it answered accurately but flatly, and
+ * once it had to weigh her IR35 position, the 57 access age and the mortgage
+ * date together, the reasoning was visibly thin. At roughly a tenth of a penny
+ * a message the extra thinking is free in any practical sense.
  */
-const REASONING_EFFORT = 'low' as const
+const REASONING_EFFORT = 'medium' as const
 
 /** Per-million-token prices, for the running cost in the status bar. */
 const PRICE_PER_MTOK = { input: 0.2, cachedInput: 0.02, output: 1.2 }

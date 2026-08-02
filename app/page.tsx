@@ -42,13 +42,14 @@ export default function Welcome() {
 
       <div className="mt-8">
         <Link
-          href="/plan"
+          href="/review"
           className="btn-square inline-flex h-14 w-full items-center justify-center bg-primary px-8 text-lg font-bold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
         >
-          Start with my numbers
+          Start my review
         </Link>
         <p className="mt-3 text-base text-muted-foreground">
-          Takes about five minutes. You can change anything later.
+          One question at a time. Around five minutes, and it saves as you go
+          so you can stop whenever you like.
         </p>
       </div>
 

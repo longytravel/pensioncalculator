@@ -72,7 +72,26 @@ export interface CalculatorState {
 
   suggestion: PendingSuggestion | null
 
+  /**
+   * Fields she has told us she doesn't know.
+   *
+   * Deliberately separate from the value itself. "I don't know what's in my
+   * Aviva pension" is not the same as "there is nothing in it" — treating the
+   * first as zero would make her plan look far worse than reality and could
+   * push her into decisions she doesn't need to make. The value stays at a
+   * reasonable estimate, the flag drives the caveat and the follow-up action.
+   */
+  unknown: Partial<Record<FieldName, boolean>>
+
+  /** Which wizard step she's on, so she can leave and come back. */
+  currentStepId: string | null
+  answered: string[]
+  skipped: string[]
+
   setValue: (field: FieldName, value: number) => void
+  setUnknown: (field: FieldName, isUnknown: boolean) => void
+  markStep: (stepId: string, outcome: 'answered' | 'skipped') => void
+  goToStep: (stepId: string | null) => void
   setMany: (partial: Partial<CalculatorValues>) => void
   setOption: <K extends keyof CalculatorOptions>(
     key: K,
@@ -130,11 +149,36 @@ export const useCalculatorStore = create<CalculatorState>()(
       step: 0,
       furthestStep: 0,
       suggestion: null,
+      unknown: {},
+      currentStepId: null,
+      answered: [],
+      skipped: [],
 
       setValue: (field, value) =>
         set((s) => ({
           values: { ...s.values, [field]: clampToField(field, value) },
+          // Typing a figure means she does know it after all.
+          unknown: s.unknown[field] ? { ...s.unknown, [field]: false } : s.unknown,
         })),
+
+      setUnknown: (field, isUnknown) =>
+        set((s) => ({ unknown: { ...s.unknown, [field]: isUnknown } })),
+
+      markStep: (stepId, outcome) =>
+        set((s) => ({
+          answered:
+            outcome === 'answered' && !s.answered.includes(stepId)
+              ? [...s.answered, stepId]
+              : s.answered,
+          skipped:
+            outcome === 'skipped'
+              ? s.skipped.includes(stepId)
+                ? s.skipped
+                : [...s.skipped, stepId]
+              : s.skipped.filter((id) => id !== stepId),
+        })),
+
+      goToStep: (stepId) => set({ currentStepId: stepId }),
 
       setMany: (partial) =>
         set((s) => {
@@ -173,6 +217,10 @@ export const useCalculatorStore = create<CalculatorState>()(
           step: 0,
           furthestStep: 0,
           suggestion: null,
+          unknown: {},
+          currentStepId: null,
+          answered: [],
+          skipped: [],
         }),
     }),
     {
