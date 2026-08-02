@@ -128,3 +128,90 @@
     @apply font-sans;
   }
 }
+/* ---------------------------------------------------------------------------
+   Jack & Jones-inspired theme.
+
+   Derived from the live jackjones.com/en-gb storefront: off-white page,
+   monochrome base, a single navy accent used sparingly, and near-square
+   corners. Typography is a free stand-in for their commercial brand face
+   (Italian Plate No2) -- Barlow Condensed carries the same tight, expanded,
+   uppercase feel for headings, with Inter for body text and figures.
+
+   Deliberately a familiar visual style, not an official product surface: no
+   logo file, no trademark lockup, no licensed font.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Off-white page with white cards, the way the storefront sits. */
+  --background: #f5f5f5;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+
+  /* Navy is the accent. Used for actions, never as a wash. */
+  --primary: #00268a;
+  --primary-foreground: #ffffff;
+
+  --secondary: #ececec;
+  --secondary-foreground: #111111;
+  --muted: #ececec;
+  --muted-foreground: #6b6b6b;
+  --accent: #ececec;
+  --accent-foreground: #111111;
+
+  --destructive: #b3261e;
+  --border: #e0e0e0;
+  --input: #d6d6d6;
+  --ring: #00268a;
+
+  /* Near-square, matching the storefront's buttons and tiles. */
+  --radius: 0.25rem;
+}
+
+.dark {
+  --background: #0d0d0d;
+  --foreground: #f5f5f5;
+  --card: #171717;
+  --card-foreground: #f5f5f5;
+  --popover: #171717;
+  --popover-foreground: #f5f5f5;
+
+  /* Lifted navy so it clears contrast requirements on near-black. */
+  --primary: #6c8cff;
+  --primary-foreground: #0d0d0d;
+
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f5;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --accent: #1f1f1f;
+  --accent-foreground: #f5f5f5;
+
+  --destructive: #f2635a;
+  --border: #2a2a2a;
+  --input: #333333;
+  --ring: #6c8cff;
+}
+
+@layer base {
+  /* Headings take the condensed face, uppercase and tightly tracked. */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display), var(--font-sans), sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Figures should line up in columns wherever they appear. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Small uppercase label, used for section eyebrows the way the store does. */
+.eyebrow {
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
