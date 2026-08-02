@@ -42,21 +42,32 @@ export function proxy(request: NextRequest) {
   const cookie = request.cookies.get(COOKIE)?.value
   if (cookie && matches(cookie, password)) return NextResponse.next()
 
-  // Accept the password from a query string so a single link can be shared.
   const supplied = request.nextUrl.searchParams.get('pw')
-  if (supplied && matches(supplied, password)) {
-    const url = request.nextUrl.clone()
-    url.searchParams.delete('pw')
 
-    const response = NextResponse.redirect(url)
-    response.cookies.set(COOKIE, password, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 180,
-      path: '/',
-    })
-    return response
+  if (supplied !== null) {
+    if (matches(supplied, password)) {
+      const url = request.nextUrl.clone()
+      url.searchParams.delete('pw')
+      // Land her on the welcome page rather than wherever the form posted from.
+      url.pathname = '/'
+
+      const response = NextResponse.redirect(url)
+      response.cookies.set(COOKIE, password, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 180,
+        path: '/',
+      })
+      return response
+    }
+
+    // Wrong password. Previously this bounced back with no explanation at all,
+    // which just looks broken.
+    const url = request.nextUrl.clone()
+    url.pathname = '/unlock'
+    url.search = '?retry=1'
+    return NextResponse.redirect(url)
   }
 
   if (request.nextUrl.pathname !== '/unlock') {
