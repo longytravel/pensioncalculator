@@ -50,7 +50,8 @@ const PAGE_QUESTIONS: Record<string, string> = {
   downsize: 'How much would moving somewhere smaller really free up?',
   savings: 'Is my money better in a pension or an ISA?',
   business: 'Can I pay money from my business into my pension?',
-  'paying-in': 'What actually is IR35, in plain English?',
+  'paying-in': 'How does tax relief on my contributions work?',
+  arrangement: 'What actually is IR35, in plain English?',
   'company-pays': 'How much can my company put in?',
 }
 
@@ -63,7 +64,8 @@ const PAGE_INSIGHTS: Record<string, string[]> = {
   'mortgage-detail': ['mortgage-clears-first', 'mortgage-outlasts'],
   savings: ['no-isa'],
   business: ['company-route-open'],
-  'paying-in': ['ir35-unknown', 'company-route-open'],
+  'paying-in': [],
+  arrangement: ['ir35-unknown', 'company-route-open'],
   'company-pays': ['company-route-open'],
 }
 
@@ -250,7 +252,10 @@ export default function Review() {
 
           <p className="mt-4 border-t pt-3 text-center text-xs text-muted-foreground">
             Saved as you go &mdash;{' '}
-            <Link href="/" className="underline">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center px-2 underline"
+            >
               stop any time and come back
             </Link>
           </p>

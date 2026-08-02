@@ -145,7 +145,7 @@ function NumberField({
             <button
               type="button"
               onClick={() => store.setUnknown(field, true)}
-              className="text-sm text-muted-foreground underline"
+              className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline"
             >
               I don&rsquo;t know this &mdash; add it to my list
             </button>
@@ -320,7 +320,7 @@ function StatePension() {
         <button
           type="button"
           onClick={() => setAdjusting(true)}
-          className="mt-3 text-sm text-muted-foreground underline"
+          className="mt-2 inline-flex min-h-11 items-center text-sm text-muted-foreground underline"
         >
           Let me change that
         </button>
@@ -344,7 +344,7 @@ function StatePension() {
           <button
             type="button"
             onClick={() => store.setUnknown('qualifyingYears', true)}
-            className="mt-2 text-sm text-muted-foreground underline"
+            className="mt-1 inline-flex min-h-11 items-center text-sm text-muted-foreground underline"
           >
             I don&rsquo;t know &mdash; add it to my list
           </button>

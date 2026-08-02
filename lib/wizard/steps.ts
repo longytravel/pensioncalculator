@@ -247,10 +247,19 @@ export const PAGES: WizardPage[] = [
           { value: 'salary', label: 'Rise with my income' },
         ],
       },
+    ],
+  },
+
+  {
+    id: 'arrangement',
+    chapter: 'paying',
+    title: 'How do you work with Jack & Jones?',
+    why: 'This decides what your company can do for your pension &mdash; the biggest lever here.',
+    inputs: [
       {
         type: 'choice',
         option: 'workingArrangement',
-        label: 'How do you work with Jack & Jones?',
+        label: 'Pick whichever is closest',
         choices: [
           { value: 'ltd_outside_ir35', label: 'My own company, outside IR35' },
           { value: 'ltd_inside_ir35', label: 'My own company, inside IR35' },

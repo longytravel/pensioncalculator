@@ -56,7 +56,7 @@ function InsightActionLink({
   action: NonNullable<Insight['action']>
 }) {
   const className =
-    'mt-3 inline-flex items-center gap-1 text-sm font-semibold underline'
+    'mt-2 inline-flex min-h-11 items-center gap-1 text-sm font-semibold underline'
 
   if (action.kind === 'link') {
     return (
