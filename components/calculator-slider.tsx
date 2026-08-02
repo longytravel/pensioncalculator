@@ -159,9 +159,9 @@ export function CalculatorSlider({
         </Button>
 
         <Slider
-          value={value}
+          value={Math.min(value, field.sliderMax ?? field.max)}
           min={field.min}
-          max={field.max}
+          max={field.sliderMax ?? field.max}
           step={field.step}
           largeStep={field.largeStep}
           disabled={disabled}

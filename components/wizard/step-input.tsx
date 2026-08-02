@@ -116,15 +116,18 @@ function NumberField({
         type="range"
         aria-label={`${def.label} slider`}
         min={def.min}
-        max={def.max}
+        max={def.sliderMax ?? def.max}
         step={def.step}
-        value={value}
+        value={Math.min(value, def.sliderMax ?? def.max)}
         onChange={(e) => commit(Number(e.target.value))}
         className="mt-4 w-full cursor-pointer appearance-none bg-transparent accent-primary"
       />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{formatFieldValue(def.format, def.min)}</span>
-        <span>{formatFieldValue(def.format, def.max)}</span>
+        <span>
+          {formatFieldValue(def.format, def.sliderMax ?? def.max)}
+          {def.sliderMax ? '+' : ''}
+        </span>
       </div>
 
       {unknownable && (
@@ -193,7 +196,7 @@ function TargetDial() {
         <input
           inputMode="numeric"
           aria-label="Monthly income you would like"
-          value={draft ?? String(monthly)}
+          value={draft ?? monthly.toLocaleString('en-GB')}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => {
             if (draft !== null) {

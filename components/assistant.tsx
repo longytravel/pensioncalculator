@@ -269,7 +269,7 @@ function StatusBar({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex min-h-9 w-full items-center gap-1.5 px-3 py-1.5 text-left"
+        className="flex min-h-11 w-full items-center gap-1.5 px-3 py-1.5 text-left"
       >
         <span
           className={`inline-block size-1.5 rounded-full ${

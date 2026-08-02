@@ -20,6 +20,12 @@ export interface FieldDef {
   explainer: string
   min: number
   max: number
+  /**
+   * Where the slider stops, if lower than max. A £0–£2m slider makes a £20k
+   * balance one pixel from the end and every drag jump thousands of pounds —
+   * so the slider covers the realistic range and typing covers the rest.
+   */
+  sliderMax?: number
   step: number
   /** Jump size for Page Up/Down and Shift+Arrow. */
   largeStep?: number
@@ -72,6 +78,7 @@ export const FIELDS = {
       'We use this for two things: working out what tax relief you get on what you pay in, and offering you a sensible starting target for retirement income if you would rather not pick one yourself.',
     min: 0,
     max: 250000,
+    sliderMax: 150000,
     step: 500,
     largeStep: 5000,
     format: 'gbp',
@@ -111,6 +118,7 @@ export const FIELDS = {
       'If you are not sure, an annual statement or the provider’s app will tell you. If you have lost track of an old pension entirely, the government’s free Pension Tracing Service can find it.',
     min: 0,
     max: 2000000,
+    sliderMax: 200000,
     step: 500,
     largeStep: 10000,
     format: 'gbp',
@@ -124,6 +132,7 @@ export const FIELDS = {
       'Keeping them separate here lets us compare their charges, which matters if you are wondering whether to combine them.',
     min: 0,
     max: 2000000,
+    sliderMax: 200000,
     step: 500,
     largeStep: 10000,
     format: 'gbp',
@@ -149,6 +158,7 @@ export const FIELDS = {
       'Savings are not a worse choice than a pension — they are a different one. A pension gets you tax relief going in but you cannot touch it until 55 (57 from 2028). An ISA has no tax relief but you can reach it at any age, which makes it genuinely useful if you want to stop working before your pension unlocks.',
     min: 0,
     max: 1000000,
+    sliderMax: 150000,
     step: 500,
     largeStep: 10000,
     format: 'gbp',
@@ -175,6 +185,7 @@ export const FIELDS = {
       'We keep the house value and the mortgage separate so you can see your equity clearly, and so you can watch what happens as the mortgage comes down. We deliberately do not forecast house prices — nobody can, and a projection that pretends to would be misleading.',
     min: 0,
     max: 3000000,
+    sliderMax: 1000000,
     step: 5000,
     largeStep: 50000,
     format: 'gbp',
@@ -188,6 +199,7 @@ export const FIELDS = {
       'This matters more than people expect. Every retirement income figure you will see quoted — including the lifestyle cards in this tool — assumes you own your home outright with nothing left to pay. If you are still paying a mortgage in retirement, you need meaningfully more income than those figures suggest.',
     min: 0,
     max: 2000000,
+    sliderMax: 500000,
     step: 1000,
     largeStep: 25000,
     format: 'gbp',
@@ -238,6 +250,7 @@ export const FIELDS = {
       'This is the number people most often get wrong, because it is tempting to think of the sale price rather than what is actually left over. Take the likely sale price, subtract what a smaller place would cost, then subtract roughly 2–3% for estate agent and legal fees, stamp duty and moving costs. What remains is the figure for this box. If you would rent instead, put in the full equity — but remember the rent then becomes a cost for the rest of your life.',
     min: 0,
     max: 1500000,
+    sliderMax: 300000,
     step: 5000,
     largeStep: 25000,
     format: 'gbp',
@@ -263,6 +276,7 @@ export const FIELDS = {
       'Be conservative here — a business is worth what someone will actually pay for it, and that is genuinely hard to predict. It is often better to move surplus company cash into your pension steadily along the way than to rely on one large payment at the end. That is what the company contribution box above is for.',
     min: 0,
     max: 2000000,
+    sliderMax: 300000,
     step: 5000,
     largeStep: 50000,
     format: 'gbp',

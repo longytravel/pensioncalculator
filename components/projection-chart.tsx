@@ -240,7 +240,10 @@ export function ProjectionChart({
         </p>
         <p>{lasts}</p>
         <p>
-          <Link href="/how" className="font-semibold underline">
+          <Link
+            href="/how"
+            className="inline-flex min-h-11 items-center font-semibold underline"
+          >
             How we worked this out
           </Link>
         </p>
