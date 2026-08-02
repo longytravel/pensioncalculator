@@ -210,7 +210,9 @@ function TargetDial() {
         />
       </div>
       <p className="mt-1 text-center text-sm text-muted-foreground">
-        a month, after tax &mdash; {gbp(annual)} a year
+        {'a month, after tax — '}
+        {gbp(annual)}
+        {' a year'}
       </p>
 
       <input
@@ -312,8 +314,9 @@ function StatePension() {
         a month, from age {store.values.statePensionAge}
       </p>
       <p className="mt-3 text-base">
-        That assumes {years} years of National Insurance. Most people who have
-        worked steadily have the full 35.
+        {'That assumes '}
+        {years}
+        {' years of National Insurance. Most people who have worked steadily have the full 35.'}
       </p>
 
       {!adjusting ? (

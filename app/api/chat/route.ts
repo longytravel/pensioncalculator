@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { SYSTEM_PROMPT, factPack, stateContext } from '@/lib/ai/prompt'
 import { MODEL_ID, DEFAULT_EFFORT, PRICE_PER_MTOK } from '@/lib/ai/config'
 import { FIELDS } from '@/lib/fields'
+import { readBudget, overBudget, budgetCookie } from '@/lib/ai/limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -43,10 +44,30 @@ const SUGGESTABLE = [
 ] as const
 
 export async function POST(req: Request) {
-  const { messages, calculatorState } = (await req.json()) as {
-    messages: UIMessage[]
-    calculatorState?: unknown
+  // Spend backstops, in order of cheapness: body size, then the daily budget.
+  // Cost is otherwise only *displayed* client-side, which protects nothing.
+  const raw = await req.text()
+  if (raw.length > 120_000) {
+    return new Response('Message too long.', { status: 413 })
   }
+
+  let parsed: { messages: UIMessage[]; calculatorState?: unknown }
+  try {
+    parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed.messages)) throw new Error('bad shape')
+  } catch {
+    return new Response('Bad request.', { status: 400 })
+  }
+  const { messages, calculatorState } = parsed
+
+  const budget = readBudget(req.headers.get('cookie'))
+  if (overBudget(budget)) {
+    return new Response(
+      'The assistant has had a very busy day and needs a rest. Try again tomorrow.',
+      { status: 429 },
+    )
+  }
+  const spent = { day: budget.day, count: budget.count + 1 }
 
   // Cap the history. Keeps cost bounded and stops a long session slowly
   // degrading as the context fills with old back-and-forth.
@@ -64,6 +85,9 @@ export async function POST(req: Request) {
      * tool, then write the answer around it.
      */
     stopWhen: stepCountIs(3),
+    // Hard per-request ceiling. Reasoning tokens count as output, so this
+    // bounds the worst case even if the model wanders.
+    maxOutputTokens: 6_000,
     providerOptions: {
       openai: {
         reasoningEffort: REASONING_EFFORT,
@@ -106,7 +130,7 @@ export async function POST(req: Request) {
     },
   })
 
-  return result.toUIMessageStreamResponse({
+  const response = result.toUIMessageStreamResponse({
     /**
      * Feeds the status bar. The effort is what we requested rather than
      * anything the API reports back, which is why it is always set explicitly
@@ -150,4 +174,7 @@ export async function POST(req: Request) {
       return 'Sorry — I could not get an answer just then. Try asking again.'
     },
   })
+
+  response.headers.append('set-cookie', budgetCookie(spent))
+  return response
 }

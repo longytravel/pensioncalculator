@@ -93,13 +93,15 @@ export function LiveHeader({ output }: { output: ProjectionOutput | null }) {
           {onTrack ? (
             <>You&rsquo;ve got enough for what you asked for.</>
           ) : output ? (
+            // Boundary spaces are explicit strings: this Next version's
+            // compiler drops implicit spaces when JSX text wraps lines.
             <>
-              {gbp(Math.abs(output.gap.gap) / 12)} a month short &mdash; an
-              extra{' '}
+              {gbp(Math.abs(output.gap.gap) / 12)}
+              {' a month short. Paying in an extra '}
               <strong className="text-foreground">
                 {gbp(output.gap.requiredExtraMonthlyContribution)} a month
-              </strong>{' '}
-              in would close it
+              </strong>
+              {' would close the gap.'}
             </>
           ) : (
             <>Checking your figures&hellip;</>

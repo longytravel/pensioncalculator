@@ -125,6 +125,31 @@ type CalculatorOptions = Pick<
   | 'legacyIntent'
 >
 
+/** The values each stored enum choice is allowed to hold when read back. */
+const OPTION_ENUMS = {
+  fundRiskLevel: ['cautious', 'balanced', 'growth'],
+  contributionType: ['relief_at_source', 'net_pay', 'salary_sacrifice'],
+  contributionEscalation: ['none', 'inflation', 'salary'],
+  decumulationMethod: ['swr', 'amortise', 'annuity'],
+  taxRegime: ['englandWales', 'scotland'],
+  household: ['single', 'couple'],
+  region: ['uk', 'london'],
+  workingArrangement: [
+    'ltd_outside_ir35',
+    'ltd_inside_ir35',
+    'umbrella',
+    'employee',
+    'sole_trader',
+    'unknown',
+  ],
+  taperingStyle: ['cliff', 'taper', 'unsure'],
+  lumpSumIntent: ['yes', 'maybe', 'no'],
+  downsizeIntent: ['yes', 'maybe', 'no'],
+  legacyIntent: ['yes', 'maybe', 'no'],
+} as const
+
+type OptionEnumKey = keyof typeof OPTION_ENUMS
+
 const INITIAL_OPTIONS: CalculatorOptions = {
   fundRiskLevel: 'growth',
   contributionType: 'relief_at_source',
@@ -239,24 +264,70 @@ export const useCalculatorStore = create<CalculatorState>()(
       name: 'kirsten-pension',
       storage: createJSONStorage(() => localStorage),
       /**
+       * Bump this when a stored shape changes meaning (a renamed enum value, a
+       * repurposed field). `migrate` gets the old blob and the version it was
+       * written at; today all versions fall through to `merge`, which
+       * revalidates everything anyway.
+       */
+      version: 1,
+      migrate: (persisted) => persisted as CalculatorState,
+      /**
        * localStorage is user-editable and may hold values written by an older
-       * version of the app, so validate on the way back in rather than trusting
-       * it. `.catch()` on each field means one bad number falls back to its
-       * default instead of wiping everything.
+       * version of the app, so validate EVERYTHING on the way back in. A stale
+       * enum that slipped through here would flow into a switch with no
+       * default and turn every projected figure into NaN — silently.
        */
       merge: (persisted, current) => {
         const p = persisted as Partial<CalculatorState> | undefined
-        if (!p) return current
+        if (!p || typeof p !== 'object') return current
 
         const parsed = calculatorValuesSchema.safeParse({
           ...DEFAULT_VALUES,
-          ...(p.values ?? {}),
+          ...(p.values && typeof p.values === 'object' ? p.values : {}),
         })
+
+        // A stored choice survives only if it is still a value the app uses.
+        const options: Partial<Record<string, unknown>> = {}
+        for (const key of Object.keys(OPTION_ENUMS) as OptionEnumKey[]) {
+          const v = p[key]
+          if (typeof v === 'string' && (OPTION_ENUMS[key] as readonly string[]).includes(v)) {
+            options[key] = v
+          }
+        }
+        if (typeof p.inRealTerms === 'boolean') options.inRealTerms = p.inRealTerms
+        if (typeof p.hasSeenTour === 'boolean') options.hasSeenTour = p.hasSeenTour
+
+        const strings = (v: unknown): string[] =>
+          Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
+
+        const fieldNames = Object.keys(DEFAULT_VALUES)
+        const found = strings(p.found).filter((f): f is FieldName =>
+          fieldNames.includes(f),
+        )
+
+        const unknown: Partial<Record<FieldName, boolean>> = {}
+        if (p.unknown && typeof p.unknown === 'object') {
+          for (const [k, v] of Object.entries(p.unknown)) {
+            if (fieldNames.includes(k) && typeof v === 'boolean') {
+              unknown[k as FieldName] = v
+            }
+          }
+        }
 
         return {
           ...current,
-          ...p,
+          ...options,
           values: parsed.success ? parsed.data : { ...DEFAULT_VALUES },
+          step: typeof p.step === 'number' ? p.step : current.step,
+          furthestStep:
+            typeof p.furthestStep === 'number' ? p.furthestStep : current.furthestStep,
+          // A stale id for a removed page is fine: the wizard falls back to
+          // page one when it can't find it.
+          currentStepId: typeof p.currentStepId === 'string' ? p.currentStepId : null,
+          answered: strings(p.answered),
+          skipped: strings(p.skipped),
+          found,
+          unknown,
           // Never restore a half-finished suggestion from a previous session.
           suggestion: null,
         }

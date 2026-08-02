@@ -88,20 +88,21 @@ export default function Done() {
         </p>
         <p className="mt-2 text-base text-muted-foreground">
           after tax, in today&rsquo;s money, against the{' '}
-          {gbp(d.targetMonthly)} a month you said you wanted.
+          {gbp(d.targetMonthly)}
+          {' a month you said you wanted.'}
         </p>
 
         {!d.onTrack && (
           <p className="mt-3 border-l-4 border-l-destructive bg-muted p-3 text-base">
-            That leaves <strong>{gbp(d.shortfallMonthly)} a month</strong> to
-            find. Everything below moves that number &mdash; the first one
-            moves it most.
+            {'That leaves '}
+            <strong>{gbp(d.shortfallMonthly)} a month</strong>
+            {' to find. Everything below moves that number — the first one moves it most.'}
           </p>
         )}
         {d.onTrack && (
           <p className="mt-3 border-l-4 border-l-foreground bg-muted p-3 text-base">
-            <strong>You are on track</strong> for what you asked for. Worth
-            looking at what happens if you want to stop earlier.
+            <strong>You are on track</strong>
+            {' for what you asked for. Worth looking at what happens if you want to stop earlier.'}
           </p>
         )}
       </section>

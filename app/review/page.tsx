@@ -72,6 +72,8 @@ const PAGE_INSIGHTS: Record<string, string[]> = {
 
 export default function Review() {
   const store = useCalculatorStore()
+  // The question she tapped, sent for her the moment the panel opens.
+  const [askQuestion, setAskQuestion] = React.useState<string | null>(null)
   const [askOpen, setAskOpen] = React.useState(false)
   const hydrated = useStoreHydrated()
   const values = hydrated ? store.values : DEFAULT_VALUES
@@ -240,7 +242,10 @@ export default function Review() {
           {PAGE_QUESTIONS[page.id] && !askOpen && (
             <button
               type="button"
-              onClick={() => setAskOpen(true)}
+              onClick={() => {
+                setAskQuestion(PAGE_QUESTIONS[page.id])
+                setAskOpen(true)
+              }}
               className="mt-4 flex w-full items-center gap-2 border border-dashed px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
             >
               <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
@@ -277,7 +282,7 @@ export default function Review() {
             </button>
           </div>
           <div className="min-h-0 flex-1">
-            <Assistant />
+            <Assistant initialQuestion={askQuestion ?? undefined} />
           </div>
         </div>
       )}

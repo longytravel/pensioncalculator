@@ -11,7 +11,7 @@
 import * as React from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { Send, Sparkles, Loader2 } from 'lucide-react'
+import { Send, Sparkles, Loader2, Info, ChevronDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +38,12 @@ const STARTERS = [
   'Is my money better in a pension or an ISA?',
 ]
 
-export function Assistant() {
+export function Assistant({
+  initialQuestion,
+}: {
+  /** Sent automatically on open, so tapping a suggested question just works. */
+  initialQuestion?: string
+}) {
   const [input, setInput] = React.useState('')
   const [sessionCost, setSessionCost] = React.useState(0)
   const [lastMeta, setLastMeta] = React.useState<ChatMetadata | null>(null)
@@ -84,6 +89,21 @@ export function Assistant() {
   })
 
   const busy = status === 'submitted' || status === 'streaming'
+
+  // Once the answer starts arriving, the spinner gets out of the way.
+  const lastMessage = messages[messages.length - 1]
+  const answerStarted =
+    lastMessage?.role === 'assistant' &&
+    lastMessage.parts.some((p) => p.type === 'text' && p.text.length > 0)
+
+  // If she arrived by tapping a suggested question, ask it for her.
+  const autoSent = React.useRef(false)
+  React.useEffect(() => {
+    if (!initialQuestion || autoSent.current) return
+    autoSent.current = true
+    sendMessage({ text: initialQuestion })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion])
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -173,10 +193,10 @@ export function Assistant() {
           </div>
         ))}
 
-        {busy && (
+        {busy && !answerStarted && (
           <p className="flex items-center gap-2 text-base text-muted-foreground">
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Thinking…
+            Thinking it through properly — this can take half a minute…
           </p>
         )}
 
@@ -221,7 +241,12 @@ export function Assistant() {
   )
 }
 
-/** Model, effort and spend. Requested by the user to be always visible. */
+/**
+ * Model, effort and spend — tucked behind a tap.
+ *
+ * The owner wants these numbers available; the person using the tool should
+ * never be shown token counts unless she goes looking.
+ */
 function StatusBar({
   meta,
   sessionCost,
@@ -231,49 +256,70 @@ function StatusBar({
   sessionCost: number
   busy: boolean
 }) {
+  const [open, setOpen] = React.useState(false)
+
   const cost =
     sessionCost > 0 && sessionCost < 0.01
       ? '<$0.01'
       : `$${sessionCost.toFixed(2)}`
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t bg-muted px-3 py-2 text-[11px] text-muted-foreground">
-      <span className="flex items-center gap-1 font-semibold uppercase tracking-wide">
+    <div className="border-t bg-muted text-[11px] text-muted-foreground">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex min-h-9 w-full items-center gap-1.5 px-3 py-1.5 text-left"
+      >
         <span
           className={`inline-block size-1.5 rounded-full ${
             busy ? 'animate-pulse bg-foreground' : 'bg-muted-foreground/50'
           }`}
           aria-hidden="true"
         />
-        {meta?.model ?? MODEL_ID}
-      </span>
+        <Info className="size-3" aria-hidden="true" />
+        About this assistant
+        <ChevronDown
+          className={`ml-auto size-3 transition-transform ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
 
-      <span className="uppercase tracking-wide">
-        effort:{' '}
-        <strong className="font-semibold">
-          {meta?.effort ?? DEFAULT_EFFORT}
-        </strong>
-      </span>
-
-      {meta?.reasoningTokens !== undefined && (
-        <span className="tabular-nums">
-          reasoning: {meta.reasoningTokens.toLocaleString('en-GB')}
-        </span>
+      {open && (
+        <div className="space-y-1 px-3 pb-2">
+          <p>
+            Powered by AI &mdash; it reads the figures you have entered and
+            nothing else. It gives guidance, not regulated financial advice.
+          </p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 opacity-80">
+            <span className="font-semibold uppercase tracking-wide">
+              {meta?.model ?? MODEL_ID}
+            </span>
+            <span className="uppercase tracking-wide">
+              effort:{' '}
+              <strong className="font-semibold">
+                {meta?.effort ?? DEFAULT_EFFORT}
+              </strong>
+            </span>
+            {meta?.reasoningTokens !== undefined && (
+              <span className="tabular-nums">
+                reasoning: {meta.reasoningTokens.toLocaleString('en-GB')}
+              </span>
+            )}
+            {meta?.outputTokens !== undefined && (
+              <span className="tabular-nums">
+                out: {meta.outputTokens.toLocaleString('en-GB')}
+              </span>
+            )}
+            {meta?.cachedTokens ? (
+              <span className="tabular-nums">
+                cached: {meta.cachedTokens.toLocaleString('en-GB')}
+              </span>
+            ) : null}
+            <span className="tabular-nums">{cost} this session</span>
+          </p>
+        </div>
       )}
-
-      {meta?.outputTokens !== undefined && (
-        <span className="tabular-nums">
-          out: {meta.outputTokens.toLocaleString('en-GB')}
-        </span>
-      )}
-
-      {meta?.cachedTokens ? (
-        <span className="tabular-nums">
-          cached: {meta.cachedTokens.toLocaleString('en-GB')}
-        </span>
-      ) : null}
-
-      <span className="ml-auto tabular-nums">{cost} this session</span>
     </div>
   )
 }

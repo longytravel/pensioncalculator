@@ -77,7 +77,9 @@ export function NumberBar({ state }: { state: NumberBarState }) {
                 {gbp(shown)}
               </span>
               <span className="text-sm text-muted-foreground">
-                of your {gbp(state.goalMonthly)} so far
+                {'of your '}
+                {gbp(state.goalMonthly)}
+                {' so far'}
               </span>
 
               {delta !== 0 && (

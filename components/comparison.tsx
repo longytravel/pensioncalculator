@@ -99,8 +99,9 @@ export function Comparison({
                     {dest.tradeOff}
                   </p>
                   <p className="text-muted-foreground">
-                    Of £100 of company profit, {gbp(dest.dayOne)} is working for
-                    you on day one.
+                    {'Of £100 of company profit, '}
+                    {gbp(dest.dayOne)}
+                    {' is working for you on day one.'}
                   </p>
                 </div>
               )}
@@ -117,9 +118,10 @@ export function Comparison({
         <p className="mt-1 text-base leading-relaxed">
           On what you have now, moving from your current charges to around 0.3%
           would be worth about{' '}
-          <strong className="figure">{gbp(feeDrag.difference)}</strong> more by
-          the time you stop &mdash; {years} years of charges either working for
-          you or against you.
+          <strong className="figure">{gbp(feeDrag.difference)}</strong>
+          {' more by the time you stop — '}
+          {years}
+          {' years of charges either working for you or against you.'}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Charges come out every year whether the fund does well or not. Finding
