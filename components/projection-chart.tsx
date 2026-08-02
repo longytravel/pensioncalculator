@@ -13,6 +13,7 @@
  */
 
 import * as React from 'react'
+import Link from 'next/link'
 import {
   ComposedChart,
   Area,
@@ -238,6 +239,11 @@ export function ProjectionChart({
           {', then you start living on it.'}
         </p>
         <p>{lasts}</p>
+        <p>
+          <Link href="/how" className="font-semibold underline">
+            How we worked this out
+          </Link>
+        </p>
       </div>
 
       <div className="border-t px-5 py-3">

@@ -27,16 +27,32 @@ export default function Welcome() {
         </p>
       </header>
 
-      {/* 16:9, responsive without pushing the page sideways on a phone. */}
-      <div className="mt-8 overflow-hidden border bg-card">
-        <div className="relative w-full pt-[56.25%]">
-          <iframe
-            src="https://app.heygen.com/embeds/509a899acce948c7b1595d82a4c6e7d3"
-            title="Watch this first"
-            allow="encrypted-media; fullscreen;"
-            allowFullScreen
-            className="absolute inset-0 size-full"
-          />
+      {/* The clip is portrait, so it gets a portrait frame — styled as the
+          video message it is, not pillarboxed into a cinema frame it never
+          fills. */}
+      <div className="mt-8 grid items-center gap-6 border bg-card p-5 sm:grid-cols-[minmax(0,1fr)_240px] sm:p-6">
+        <div className="order-2 sm:order-1">
+          <p className="eyebrow text-xs text-muted-foreground">
+            Before you start
+          </p>
+          <p className="mt-2 text-xl font-bold leading-snug">
+            A short word from your dedicated retirement correspondent.
+          </p>
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+            Sixty seconds, one joke at your expense, and then the tool below
+            does the actual sums. Nobody is selling you anything.
+          </p>
+        </div>
+        <div className="order-1 mx-auto w-full max-w-[240px] overflow-hidden border bg-black sm:order-2">
+          <div className="relative w-full pt-[177.78%]">
+            <iframe
+              src="https://app.heygen.com/embeds/509a899acce948c7b1595d82a4c6e7d3"
+              title="Watch this first"
+              allow="encrypted-media; fullscreen;"
+              allowFullScreen
+              className="absolute inset-0 size-full"
+            />
+          </div>
         </div>
       </div>
 

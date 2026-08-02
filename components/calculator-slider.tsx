@@ -294,6 +294,9 @@ function suffixFor(format: string) {
 /** Percentages are stored as decimals but shown as whole percents. */
 function formatForInput(format: string, value: number): string {
   if (format === 'percent') return String(Number((value * 100).toFixed(3)))
+  // Money reads as money: 120,000 not 120000. The parser strips the commas.
+  if (format === 'gbp' || format === 'gbp-monthly')
+    return value.toLocaleString('en-GB', { maximumFractionDigits: 2 })
   return String(value)
 }
 

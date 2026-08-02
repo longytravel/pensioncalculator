@@ -11,7 +11,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Check, Circle, ArrowUpRight } from 'lucide-react'
+import { Check, Circle, ArrowUpRight, Printer } from 'lucide-react'
 
 import {
   useCalculatorStore,
@@ -88,6 +88,12 @@ export default function Done() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:px-6 lg:max-w-3xl">
+      {/* Only the printed page sees this. */}
+      <p className="print-only mb-4 border-b pb-2 text-sm">
+        Your retirement plan &mdash; all figures in today&rsquo;s money.
+        Guidance, not financial advice.
+      </p>
+
       <p className="eyebrow text-xs text-muted-foreground">That&rsquo;s it</p>
       <h1 className="mt-1 text-3xl font-extrabold uppercase sm:text-4xl">
         Here&rsquo;s where you stand
@@ -176,7 +182,7 @@ export default function Done() {
         />
       </div>
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+      <div className="no-print mt-8 flex flex-col gap-3 sm:flex-row">
         <Link
           href="/plan"
           className="btn-square flex h-14 flex-1 items-center justify-center bg-primary text-base font-bold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90"
@@ -191,7 +197,16 @@ export default function Done() {
         </Link>
       </div>
 
-      <div className="mt-6 border-t pt-4">
+      <button
+        type="button"
+        onClick={() => window.print()}
+        className="no-print btn-square mt-3 flex h-12 w-full items-center justify-center gap-2 border text-sm font-bold uppercase tracking-wide transition-colors hover:bg-muted"
+      >
+        <Printer className="size-4" aria-hidden="true" />
+        Print it, or save it as a PDF
+      </button>
+
+      <div className="no-print mt-6 border-t pt-4">
         <StartAgain />
       </div>
 
@@ -218,6 +233,13 @@ export default function Done() {
             Pension Wise
           </a>{' '}
           is free to you from 50 &mdash; genuinely worth booking.
+        </p>
+        <p className="mt-2">
+          Want the workings?{' '}
+          <Link href="/how" className="underline">
+            How we worked this out
+          </Link>
+          .
         </p>
       </footer>
     </main>

@@ -402,6 +402,9 @@ function RiskChoice() {
 
 function displayFor(def: FieldDef, value: number): string {
   if (def.format === 'percent') return String(Number((value * 100).toFixed(3)))
+  // Money reads as money: 120,000 not 120000. The parser strips the commas.
+  if (def.format === 'gbp' || def.format === 'gbp-monthly')
+    return value.toLocaleString('en-GB', { maximumFractionDigits: 2 })
   return String(value)
 }
 

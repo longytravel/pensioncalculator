@@ -261,6 +261,13 @@ export default function Plan() {
             </a>{' '}
             is free to you from 50.
           </p>
+          <p className="mt-2">
+            Want the workings?{' '}
+            <Link href="/how" className="underline">
+              How we worked this out
+            </Link>
+            .
+          </p>
         </footer>
       </main>
     </>

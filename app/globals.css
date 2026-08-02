@@ -299,3 +299,39 @@ select,
 textarea {
   font-size: max(16px, 1rem);
 }
+
+/* ---------------------------------------------------------------------------
+   Print — "Save as PDF" is the poor man's export, and a good one.
+
+   Interactive chrome disappears; the plan itself keeps its borders so the
+   structure survives on paper. Anything marked .print-only exists for the
+   printed page alone.
+   --------------------------------------------------------------------------- */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  section {
+    break-inside: avoid;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
