@@ -18,6 +18,7 @@ import { project } from '@/lib/engine/project'
 import { EngineInputError } from '@/lib/engine/types'
 import { RETIREMENT_LIVING_STANDARDS } from '@/lib/engine/assumptions'
 import { CalculatorSlider } from '@/components/calculator-slider'
+import { Assistant } from '@/components/assistant'
 import { Card } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
@@ -199,6 +200,10 @@ export default function Home() {
             onDismissSuggestion={store.dismissSuggestion}
           />
         ))}
+      </div>
+
+      <div className="mt-10 h-[32rem]">
+        <Assistant />
       </div>
 
       <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">

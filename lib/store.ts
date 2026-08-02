@@ -24,6 +24,7 @@ import type {
   FundRiskLevel,
   TaxRegime,
 } from './engine/types'
+import type { WorkingArrangement } from './engine/contractor'
 
 /** A change the assistant has proposed but she hasn't accepted yet. */
 export interface PendingSuggestion {
@@ -46,6 +47,11 @@ export interface CalculatorState {
   household: 'single' | 'couple'
   region: 'uk' | 'london'
   inRealTerms: boolean
+  /**
+   * How she is engaged. Gates whether company pension contributions are
+   * actually available, so it defaults to 'unknown' rather than assuming.
+   */
+  workingArrangement: WorkingArrangement
 
   /** Which of the seven screens she's on. */
   step: number
@@ -79,6 +85,7 @@ type CalculatorOptions = Pick<
   | 'region'
   | 'inRealTerms'
   | 'hasSeenTour'
+  | 'workingArrangement'
 >
 
 const INITIAL_OPTIONS: CalculatorOptions = {
@@ -91,6 +98,7 @@ const INITIAL_OPTIONS: CalculatorOptions = {
   region: 'uk',
   inRealTerms: true,
   hasSeenTour: false,
+  workingArrangement: 'unknown',
 }
 
 export const useCalculatorStore = create<CalculatorState>()(
