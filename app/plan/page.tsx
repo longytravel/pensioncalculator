@@ -27,6 +27,8 @@ import { companyContributionsAvailable } from '@/lib/engine/contractor'
 import { CalculatorSlider } from '@/components/calculator-slider'
 import { LiveHeader } from '@/components/live-header'
 import { Assistant } from '@/components/assistant'
+import { Objectives } from '@/components/objectives'
+import { Guides } from '@/components/guides'
 import { Alert } from '@/components/ui/alert'
 import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
 
@@ -44,6 +46,8 @@ interface Section {
   fields: FieldName[]
   /** Open by default — the ones she most needs to see. */
   open?: boolean
+  /** An extra control that isn't a plain numeric slider. */
+  extra?: 'risk'
 }
 
 const SECTIONS: Section[] = [
@@ -67,6 +71,8 @@ const SECTIONS: Section[] = [
     id: 'pensions',
     title: 'The two pensions you already have',
     blurb: 'Rough figures are fine. You can check the exact ones later.',
+    /** The risk question she asked about directly. */
+    extra: 'risk',
     fields: [
       'avivaBalance',
       'peoplesPensionBalance',
@@ -157,6 +163,10 @@ export default function Plan() {
             <p>{error}</p>
           </Alert>
         )}
+
+        <div className="mt-5">
+          <Objectives />
+        </div>
 
         {/* Where the money is actually coming from. */}
         {output && (
@@ -255,6 +265,41 @@ export default function Plan() {
         <div className="mt-6 space-y-3">
           {SECTIONS.map((section) => (
             <Collapsible key={section.id} section={section}>
+              {section.extra === 'risk' && (
+                <div className="border bg-card p-5">
+                  <p className="text-lg font-semibold">
+                    How is your money invested?
+                  </p>
+                  <p className="mt-1 text-base text-muted-foreground">
+                    If you have never picked, you are almost certainly in the
+                    default fund, which is usually the middle one. Have a look
+                    at the guide below to find out for certain.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(
+                      [
+                        ['cautious', 'Cautious / safe'],
+                        ['balanced', 'Balanced'],
+                        ['growth', 'Adventurous / growth'],
+                      ] as const
+                    ).map(([level, label]) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => store.setOption('fundRiskLevel', level)}
+                        aria-pressed={store.fundRiskLevel === level}
+                        className={`min-h-12 border px-4 py-2 text-base transition-colors ${
+                          store.fundRiskLevel === level
+                            ? 'border-foreground bg-primary text-primary-foreground'
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {section.fields.map((name) => (
                 <CalculatorSlider
                   key={name}
@@ -287,7 +332,11 @@ export default function Plan() {
           </Alert>
         )}
 
-        <div className="mt-8 h-[32rem]">
+        <div className="mt-6">
+          <Guides />
+        </div>
+
+        <div className="mt-6 h-[32rem]">
           <Assistant />
         </div>
 

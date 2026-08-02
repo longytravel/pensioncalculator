@@ -53,6 +53,17 @@ export interface CalculatorState {
    */
   workingArrangement: WorkingArrangement
 
+  /**
+   * What she actually wants. These don't all feed the maths yet — they shape
+   * the wording, the next-steps list and what the assistant knows about her.
+   * Asking them matters in its own right: nobody has, and a plan built without
+   * them is just arithmetic.
+   */
+  taperingStyle: 'cliff' | 'taper' | 'unsure'
+  lumpSumIntent: 'yes' | 'maybe' | 'no'
+  downsizeIntent: 'yes' | 'maybe' | 'no'
+  legacyIntent: 'yes' | 'maybe' | 'no'
+
   /** Which of the seven screens she's on. */
   step: number
   /** Screens she's completed, so we can let her jump back. */
@@ -86,6 +97,10 @@ type CalculatorOptions = Pick<
   | 'inRealTerms'
   | 'hasSeenTour'
   | 'workingArrangement'
+  | 'taperingStyle'
+  | 'lumpSumIntent'
+  | 'downsizeIntent'
+  | 'legacyIntent'
 >
 
 const INITIAL_OPTIONS: CalculatorOptions = {
@@ -99,6 +114,12 @@ const INITIAL_OPTIONS: CalculatorOptions = {
   inRealTerms: true,
   hasSeenTour: false,
   workingArrangement: 'unknown',
+  taperingStyle: 'unsure',
+  lumpSumIntent: 'maybe',
+  // Defaults to 'maybe' rather than 'no' so the house isn't silently written
+  // out of her plan by a question she skipped.
+  downsizeIntent: 'maybe',
+  legacyIntent: 'maybe',
 }
 
 export const useCalculatorStore = create<CalculatorState>()(
