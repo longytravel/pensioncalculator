@@ -70,8 +70,9 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Your retirement, in plain English
+        <p className="eyebrow text-sm text-muted-foreground">Your money plan</p>
+        <h1 className="mt-1 text-4xl font-extrabold uppercase sm:text-5xl">
+          Where you stand
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">
           Move the sliders and watch what happens. Nothing is saved anywhere but
@@ -81,23 +82,26 @@ export default function Home() {
 
       {output && (
         <Card className="mb-8 border-2 p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Where you&rsquo;re heading
+          <h2 className="eyebrow text-sm text-muted-foreground">
+            On track for
           </h2>
 
-          <p className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
-            About {gbp(output.gap.projectedNetIncome)} a year
-            <span className="mt-1 block text-lg font-normal text-muted-foreground">
-              that&rsquo;s {gbp(output.gap.projectedNetIncome / 12)} a month,
-              after tax, in today&rsquo;s money
+          <p className="mt-2 leading-none">
+            <span className="figure text-5xl sm:text-6xl">
+              {gbp(output.gap.projectedNetIncome / 12)}
+            </span>
+            <span className="ml-2 text-xl text-muted-foreground">a month</span>
+            <span className="mt-2 block text-base font-normal text-muted-foreground">
+              after tax, in today&rsquo;s money &mdash; that&rsquo;s{' '}
+              {gbp(output.gap.projectedNetIncome)} a year
             </span>
           </p>
 
           <div
-            className={`mt-5 rounded-xl p-4 ${
+            className={`mt-5 border-l-4 p-4 ${
               output.gap.onTrack
-                ? 'bg-emerald-50 dark:bg-emerald-950/40'
-                : 'bg-amber-50 dark:bg-amber-950/40'
+                ? 'border-l-foreground bg-muted'
+                : 'border-l-destructive bg-muted'
             }`}
           >
             {output.gap.onTrack ? (
@@ -128,18 +132,18 @@ export default function Home() {
           <dl className="mt-6 grid grid-cols-3 gap-4 border-t pt-5 text-center">
             {(['low', 'mid', 'high'] as const).map((s) => (
               <div key={s}>
-                <dt className="text-sm text-muted-foreground">
+                <dt className="eyebrow text-xs text-muted-foreground">
                   {s === 'mid'
                     ? 'expected'
                     : s === 'low'
                       ? 'cautious'
                       : 'optimistic'}
                 </dt>
-                <dd className="text-xl font-semibold tabular-nums">
+                <dd className="figure mt-1 text-xl">
                   {gbp(output.scenarios[s].potAtRetirement)}
                 </dd>
                 {output.scenarios[s].potDepletionAge && (
-                  <dd className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                  <dd className="mt-1 text-xs font-semibold text-destructive">
                     runs out at {output.scenarios[s].potDepletionAge}
                   </dd>
                 )}

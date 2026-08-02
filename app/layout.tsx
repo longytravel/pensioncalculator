@@ -1,17 +1,26 @@
 import type { Metadata } from 'next'
-import { Barlow_Condensed, Inter } from 'next/font/google'
+import { Archivo, Bebas_Neue, Inter } from 'next/font/google'
 import './globals.css'
 
 /**
- * Free stand-ins for the Jack & Jones brand face (Italian Plate No2, which is
- * commercially licensed and not ours to ship). Barlow Condensed carries the
- * same tight, expanded, uppercase feel for headings; Inter handles body text
- * and figures, where legibility matters more than character.
+ * Free stand-ins for the faces the storefront actually loads, none of which we
+ * can license: Italian Plate No2 Expanded for display, bebas-neue-pro for
+ * labels, Tondo for soft text.
+ *
+ * Archivo is the closest free match to Italian Plate's expanded grotesk, Bebas
+ * Neue is literally the free version of bebas-neue-pro, and Inter handles body
+ * text and figures where legibility beats character.
  */
-const display = Barlow_Condensed({
+const display = Archivo({
   variable: '--font-display',
   subsets: ['latin'],
-  weight: ['600', '700', '800'],
+  weight: ['500', '600', '700', '800'],
+})
+
+const label = Bebas_Neue({
+  variable: '--font-label',
+  subsets: ['latin'],
+  weight: '400',
 })
 
 const sans = Inter({
@@ -34,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en-GB"
-      className={`${display.variable} ${sans.variable} h-full antialiased`}
+      className={`${display.variable} ${label.variable} ${sans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>

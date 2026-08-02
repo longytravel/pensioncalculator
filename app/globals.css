@@ -128,90 +128,110 @@
     @apply font-sans;
   }
 }
+
 /* ---------------------------------------------------------------------------
    Jack & Jones-inspired theme.
 
-   Derived from the live jackjones.com/en-gb storefront: off-white page,
-   monochrome base, a single navy accent used sparingly, and near-square
-   corners. Typography is a free stand-in for their commercial brand face
-   (Italian Plate No2) -- Barlow Condensed carries the same tight, expanded,
-   uppercase feel for headings, with Inter for body text and figures.
+   Values taken from the production CSS on jackjones.com/en-gb, not guessed:
+   the storefront's primary is black (buttons invert to white on hover), the
+   page is pure white, and the one real accent is the deep red used on sale
+   prices. Corners are square to 2px -- their checkout CTA is literally
+   border-radius:0. Tracking is flat to slightly positive, not tightened, and
+   numerals run heavy.
+
+   The red is reserved for attention and shortfall states, never decoration.
+
+   Typography substitutes their licensed faces: Archivo for display (closest
+   free match to Italian Plate No2 Expanded), Bebas Neue for uppercase labels
+   (the free version of the bebas-neue-pro they actually load), Inter for body
+   and figures.
 
    Deliberately a familiar visual style, not an official product surface: no
    logo file, no trademark lockup, no licensed font.
    --------------------------------------------------------------------------- */
 
 :root {
-  /* Off-white page with white cards, the way the storefront sits. */
-  --background: #f5f5f5;
-  --foreground: #111111;
+  --background: #ffffff;
+  --foreground: #000000;
   --card: #ffffff;
-  --card-foreground: #111111;
+  --card-foreground: #000000;
   --popover: #ffffff;
-  --popover-foreground: #111111;
+  --popover-foreground: #000000;
 
-  /* Navy is the accent. Used for actions, never as a wash. */
-  --primary: #00268a;
+  /* Black is the brand action colour. */
+  --primary: #000000;
   --primary-foreground: #ffffff;
 
-  --secondary: #ececec;
-  --secondary-foreground: #111111;
-  --muted: #ececec;
-  --muted-foreground: #6b6b6b;
-  --accent: #ececec;
-  --accent-foreground: #111111;
+  --secondary: #f1f1f1;
+  --secondary-foreground: #000000;
+  --muted: #f1f1f1;
+  --muted-foreground: #72757e;
+  --accent: #f1f1f1;
+  --accent-foreground: #000000;
 
-  --destructive: #b3261e;
-  --border: #e0e0e0;
-  --input: #d6d6d6;
-  --ring: #00268a;
+  /* Their sale red. Used here for shortfalls and warnings only. */
+  --destructive: #b90a2d;
+  --border: #dddddd;
+  --input: #dddddd;
+  --ring: #000000;
 
-  /* Near-square, matching the storefront's buttons and tiles. */
-  --radius: 0.25rem;
+  /* 2px, matching the storefront. Primary buttons go fully square. */
+  --radius: 0.125rem;
 }
 
 .dark {
-  --background: #0d0d0d;
-  --foreground: #f5f5f5;
-  --card: #171717;
-  --card-foreground: #f5f5f5;
-  --popover: #171717;
-  --popover-foreground: #f5f5f5;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
 
-  /* Lifted navy so it clears contrast requirements on near-black. */
-  --primary: #6c8cff;
-  --primary-foreground: #0d0d0d;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
 
-  --secondary: #1f1f1f;
-  --secondary-foreground: #f5f5f5;
-  --muted: #1f1f1f;
-  --muted-foreground: #a3a3a3;
-  --accent: #1f1f1f;
-  --accent-foreground: #f5f5f5;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #a8a8a8;
+  --accent: #1a1a1a;
+  --accent-foreground: #ffffff;
 
-  --destructive: #f2635a;
+  /* Lifted so it still clears contrast on black. */
+  --destructive: #e23a58;
   --border: #2a2a2a;
   --input: #333333;
-  --ring: #6c8cff;
+  --ring: #ffffff;
 }
 
 @layer base {
-  /* Headings take the condensed face, uppercase and tightly tracked. */
   h1, h2, h3, .font-display {
     font-family: var(--font-display), var(--font-sans), sans-serif;
-    letter-spacing: -0.01em;
+    /* Flat tracking, as the storefront uses -- not tightened. */
+    letter-spacing: 0.01em;
   }
 
-  /* Figures should line up in columns wherever they appear. */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Small uppercase label, used for section eyebrows the way the store does. */
+/* Uppercase eyebrow label, the storefront's most recognisable text treatment. */
 .eyebrow {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-label), var(--font-display), sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+/* Prices and headline figures run heavy on the live site. */
+.figure {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Primary actions are fully square, matching their checkout CTA. */
+.btn-square {
+  border-radius: 0;
 }
