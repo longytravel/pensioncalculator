@@ -3,14 +3,14 @@
 /**
  * The step-by-step review.
  *
- * One question on screen at a time, inside a fixed frame with the number
- * pinned above it. Nothing scrolls, so she can never lose sight of what her
- * answers are doing.
+ * Pages of related questions rather than one question at a time — fewer
+ * clicks, and things that belong together are asked together. The number sits
+ * in the frame above so it never leaves the screen.
  */
 
 import * as React from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, MessageCircleQuestion } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 import {
   useCalculatorStore,
@@ -18,7 +18,7 @@ import {
   toEngineInputs,
 } from '@/lib/store'
 import { project } from '@/lib/engine/project'
-import { visibleSteps, CHAPTERS, type WizardVisibleState } from '@/lib/wizard/steps'
+import { visiblePages, CHAPTERS, type WizardVisibleState } from '@/lib/wizard/steps'
 import { NumberBar, type NumberBarState } from '@/components/wizard/number-bar'
 import { StepInput } from '@/components/wizard/step-input'
 import { InsightCard } from '@/components/advice-cards'
@@ -26,22 +26,19 @@ import { advise } from '@/lib/advice'
 import { DEFAULT_VALUES } from '@/lib/fields'
 
 /**
- * Which insight belongs to which step.
+ * Which insight belongs to which page.
  *
- * The learning has to land at the step that earned it — telling her about IR35
- * twenty screens after she answered the question is worth almost nothing.
+ * The learning has to land where it was earned. Telling her about IR35 six
+ * pages after she answered is worth almost nothing.
  */
-const STEP_INSIGHTS: Record<string, string[]> = {
-  'retire-age': ['bridge-gap', 'mortgage-clears-first', 'mortgage-outlasts'],
+const PAGE_INSIGHTS: Record<string, string[]> = {
+  about: ['bridge-gap', 'mortgage-clears-first'],
   'state-pension': ['state-pension-full', 'ni-gaps'],
-  'aviva-balance': ['unknown-balance'],
-  'aviva-risk': ['cautious-too-early', 'charges-high'],
-  'peoples-balance': ['unknown-balance'],
-  isa: ['no-isa'],
-  'house-value': ['equity-real'],
-  mortgage: ['mortgage-clears-first', 'mortgage-outlasts'],
-  arrangement: ['ir35-unknown', 'company-route-open'],
-  'company-contribution': ['company-route-open'],
+  pensions: ['unknown-balance', 'cautious-too-early', 'charges-high'],
+  home: ['mortgage-clears-first', 'mortgage-outlasts', 'equity-real'],
+  'other-money': ['no-isa'],
+  'paying-in': ['ir35-unknown', 'company-route-open'],
+  'company-pays': ['company-route-open'],
 }
 
 export default function Review() {
@@ -58,9 +55,8 @@ export default function Review() {
     legacyIntent: store.legacyIntent,
   }
 
-  const steps = React.useMemo(
-    () => visibleSteps(branchState),
-    // Recompute whenever an answer could change the path.
+  const pages = React.useMemo(
+    () => visiblePages(branchState),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       store.workingArrangement,
@@ -73,24 +69,29 @@ export default function Review() {
 
   const index = Math.max(
     0,
-    steps.findIndex((s) => s.id === store.currentStepId),
+    pages.findIndex((p) => p.id === store.currentStepId),
   )
-  const step = steps[index] ?? steps[0]
-  const isLast = index >= steps.length - 1
+  const page = pages[index] ?? pages[0]
+  const isLast = index >= pages.length - 1
 
   const projection = React.useMemo(() => {
     try {
-      return project(toEngineInputs({ ...store, values }), {
-        inRealTerms: true,
-      })
+      return project(toEngineInputs({ ...store, values }), { inRealTerms: true })
     } catch {
       return null
     }
   }, [store, values])
 
-  // The number stays quiet until it would mean something, shows her goal while
-  // she is deciding what she wants, then counts up as she adds what she has.
-  const chapter = step?.chapter ?? 'about'
+  const advice = React.useMemo(() => {
+    try {
+      return advise({ ...store, values })
+    } catch {
+      return null
+    }
+  }, [store, values])
+
+  // Quiet until a number would mean something, then her goal, then counting up.
+  const chapter = page?.chapter ?? 'about'
   const barState: NumberBarState =
     chapter === 'about'
       ? { mode: 'quiet' }
@@ -104,80 +105,82 @@ export default function Review() {
             goalMonthly: Math.round(values.targetIncome / 12),
           }
 
-  // Recomputed live, so the insight reflects the answer she just gave.
-  const advice = React.useMemo(() => {
-    try {
-      return advise({ ...store, values })
-    } catch {
-      return null
-    }
-  }, [store, values])
-
-  const stepInsights = (STEP_INSIGHTS[step?.id ?? ''] ?? [])
+  const insights = (PAGE_INSIGHTS[page?.id ?? ''] ?? [])
     .map((id) => advice?.insights.find((i) => i.id === id))
     .filter((i) => i !== undefined)
-    .slice(0, 1)
+    .slice(0, 2)
 
   const go = (delta: number) => {
-    const next = steps[index + delta]
-    if (next) store.goToStep(next.id)
+    const next = pages[index + delta]
+    if (next) {
+      store.goToStep(next.id)
+      window.scrollTo({ top: 0 })
+    }
   }
 
   const advance = (outcome: 'answered' | 'skipped') => {
-    if (step) store.markStep(step.id, outcome)
+    if (page) store.markStep(page.id, outcome)
     if (isLast) {
-      window.location.href = '/plan'
+      window.location.href = '/done'
       return
     }
     go(1)
   }
 
-  if (!step) return null
+  if (!page) return null
 
   return (
     <div className="flex min-h-dvh flex-col">
       <NumberBar state={barState} />
 
-      {/* Progress against the path she is actually walking, not the full list. */}
       <div className="h-1 w-full bg-muted">
         <div
           className="h-full bg-foreground transition-all duration-300"
-          style={{ width: `${((index + 1) / steps.length) * 100}%` }}
+          style={{ width: `${((index + 1) / pages.length) * 100}%` }}
         />
       </div>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-6 sm:px-6">
         <p className="eyebrow text-[11px] text-muted-foreground">
-          {CHAPTERS[step.chapter].title} &middot; {index + 1} of {steps.length}
+          {CHAPTERS[page.chapter]} &middot; {index + 1} of {pages.length}
         </p>
 
-        <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">
-          {step.question}
-        </h1>
-        {step.why && (
-          <p className="mt-2 text-base text-muted-foreground">{step.why}</p>
+        <h1
+          className="mt-2 text-2xl font-bold leading-tight sm:text-3xl"
+          dangerouslySetInnerHTML={{ __html: page.title }}
+        />
+        {page.why && (
+          <p
+            className="mt-2 text-base text-muted-foreground"
+            dangerouslySetInnerHTML={{ __html: page.why }}
+          />
         )}
 
-        <div className="my-auto py-6">
-          <StepInput kind={step.kind} />
+        <div className="flex-1 space-y-7 py-7">
+          {page.inputs.map((input, i) => (
+            <StepInput
+              key={i}
+              input={input}
+              solo={page.inputs.length === 1}
+            />
+          ))}
 
-          {/* Lands under the input she just used, not on a later screen. */}
-          {stepInsights.length > 0 && (
-            <div className="mt-6 space-y-3">
-              {stepInsights.map((insight) => (
+          {insights.length > 0 && (
+            <div className="space-y-3">
+              {insights.map((insight) => (
                 <InsightCard key={insight.id} insight={insight} />
               ))}
             </div>
           )}
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto pt-4">
           <button
             type="button"
             onClick={() => advance('answered')}
             className="btn-square flex h-14 w-full items-center justify-center gap-2 bg-primary text-lg font-bold uppercase tracking-wide text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {isLast ? 'See the whole picture' : 'Next'}
+            {isLast ? 'Show me my plan' : 'Next'}
             <ArrowRight className="size-5" aria-hidden="true" />
           </button>
 
@@ -192,7 +195,7 @@ export default function Review() {
               Back
             </button>
 
-            {step.skippable !== false && (
+            {page.skippable !== false && (
               <button
                 type="button"
                 onClick={() => advance('skipped')}
@@ -203,18 +206,12 @@ export default function Review() {
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm">
-            <Link
-              href="/plan"
-              className="flex items-center gap-1 text-muted-foreground underline"
-            >
-              <MessageCircleQuestion className="size-4" aria-hidden="true" />
-              See where you&rsquo;re up to
+          <p className="mt-4 border-t pt-3 text-center text-xs text-muted-foreground">
+            Saved as you go &mdash;{' '}
+            <Link href="/" className="underline">
+              stop any time and come back
             </Link>
-            <Link href="/" className="text-muted-foreground underline">
-              Save and come back later
-            </Link>
-          </div>
+          </p>
         </div>
       </main>
     </div>

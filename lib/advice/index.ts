@@ -169,10 +169,34 @@ function rank(actions: RankedAction[], derived: Derived): RankedAction[] {
   return actions
     .map((action) => {
       const capped = Math.min(action.impactMonthly, ceiling)
-      return { ...action, score: capped / Math.pow(2, action.effort - 1) }
+      return {
+        ...action,
+        horizon: horizonFor(action.effort),
+        score: capped / Math.pow(2, action.effort - 1),
+      }
     })
     .filter((a) => a.impactMonthly > 0 || a.unlocks)
     .sort((a, b) => b.score - a.score)
+}
+
+/** Effort decides the horizon, so the two can never contradict each other. */
+function horizonFor(effort: number): RankedAction['horizon'] {
+  if (effort <= 2) return 'short'
+  if (effort === 3) return 'medium'
+  return 'long'
+}
+
+/** Grouped for display, each group still ordered by score. */
+export function byHorizon(
+  actions: RankedAction[],
+): Array<{ horizon: RankedAction['horizon']; actions: RankedAction[] }> {
+  const order: RankedAction['horizon'][] = ['short', 'medium', 'long']
+  return order
+    .map((horizon) => ({
+      horizon,
+      actions: actions.filter((a) => a.horizon === horizon),
+    }))
+    .filter((group) => group.actions.length > 0)
 }
 
 export const EFFORT_LABELS: Record<number, string> = {

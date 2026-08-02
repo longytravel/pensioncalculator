@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { advise } from './index'
+import { advise, byHorizon } from './index'
 import { DEFAULT_VALUES } from '@/lib/fields'
 import type { AdviceState } from './types'
 
@@ -114,6 +114,55 @@ describe('ranking', () => {
     expect(onTrack.derived.onTrack).toBe(true)
     // Every impact is capped at the floor, so nothing shouts.
     for (const a of onTrack.actions) expect(a.score).toBeLessThanOrEqual(100)
+  })
+})
+
+describe('short, medium and long term', () => {
+  it('derives the horizon from effort, so they cannot disagree', () => {
+    const { actions } = advise(
+      kirsten({ workingArrangement: 'ltd_outside_ir35', downsizeIntent: 'yes' }),
+    )
+    for (const a of actions) {
+      const expected =
+        a.effort <= 2 ? 'short' : a.effort === 3 ? 'medium' : 'long'
+      expect(a.horizon, a.id).toBe(expected)
+    }
+  })
+
+  it('groups in order and keeps each group sorted by score', () => {
+    const { actions } = advise(
+      kirsten({ workingArrangement: 'ltd_outside_ir35', downsizeIntent: 'yes' }),
+    )
+    const groups = byHorizon(actions)
+
+    expect(groups.map((g) => g.horizon)).toEqual(
+      ['short', 'medium', 'long'].filter((h) =>
+        actions.some((a) => a.horizon === h),
+      ),
+    )
+
+    for (const group of groups) {
+      for (let i = 1; i < group.actions.length; i++) {
+        expect(group.actions[i - 1].score).toBeGreaterThanOrEqual(
+          group.actions[i].score,
+        )
+      }
+    }
+  })
+
+  it('never returns an empty group', () => {
+    const groups = byHorizon(advise(kirsten()).actions)
+    for (const g of groups) expect(g.actions.length).toBeGreaterThan(0)
+  })
+
+  it('puts quick wins in this week and the house in the long term', () => {
+    const { actions } = advise(
+      kirsten({ workingArrangement: 'ltd_outside_ir35', downsizeIntent: 'yes' }),
+    )
+    const ni = actions.find((a) => a.id === 'ni-record')
+    const downsize = actions.find((a) => a.id === 'downsize')
+    if (ni) expect(ni.horizon).toBe('short')
+    if (downsize) expect(downsize.horizon).toBe('long')
   })
 })
 

@@ -87,9 +87,12 @@ export interface CalculatorState {
   currentStepId: string | null
   answered: string[]
   skipped: string[]
+  /** Things she said she'd look up and has since ticked off. */
+  found: FieldName[]
 
   setValue: (field: FieldName, value: number) => void
   setUnknown: (field: FieldName, isUnknown: boolean) => void
+  toggleFound: (field: FieldName) => void
   markStep: (stepId: string, outcome: 'answered' | 'skipped') => void
   goToStep: (stepId: string | null) => void
   setMany: (partial: Partial<CalculatorValues>) => void
@@ -153,6 +156,7 @@ export const useCalculatorStore = create<CalculatorState>()(
       currentStepId: null,
       answered: [],
       skipped: [],
+      found: [],
 
       setValue: (field, value) =>
         set((s) => ({
@@ -163,6 +167,13 @@ export const useCalculatorStore = create<CalculatorState>()(
 
       setUnknown: (field, isUnknown) =>
         set((s) => ({ unknown: { ...s.unknown, [field]: isUnknown } })),
+
+      toggleFound: (field) =>
+        set((s) => ({
+          found: s.found.includes(field)
+            ? s.found.filter((f) => f !== field)
+            : [...s.found, field],
+        })),
 
       markStep: (stepId, outcome) =>
         set((s) => ({
@@ -221,6 +232,7 @@ export const useCalculatorStore = create<CalculatorState>()(
           currentStepId: null,
           answered: [],
           skipped: [],
+          found: [],
         }),
     }),
     {

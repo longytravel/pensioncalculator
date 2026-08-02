@@ -27,9 +27,18 @@ export function buildActions(
   const v = state.values
   const out: RankedAction[] = []
 
+  // Horizon and score are filled in by the ranker, from effort.
   const add = (
-    a: Omit<RankedAction, 'score' | 'effortLabel'> & { effort: 1 | 2 | 3 | 4 | 5 },
-  ) => out.push({ ...a, effortLabel: EFFORT_LABELS[a.effort], score: 0 })
+    a: Omit<RankedAction, 'score' | 'effortLabel' | 'horizon'> & {
+      effort: 1 | 2 | 3 | 4 | 5
+    },
+  ) =>
+    out.push({
+      ...a,
+      effortLabel: EFFORT_LABELS[a.effort],
+      horizon: 'short',
+      score: 0,
+    })
 
   // ------------------------------------------------- the company route
   const companyImpact = impactOfChange(state, {

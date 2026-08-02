@@ -88,6 +88,30 @@ export interface InsightAction {
   target: string
 }
 
+/**
+ * When she'd realistically do it.
+ *
+ * Derived from effort rather than set by hand, so the two can never disagree:
+ * a fifteen-minute job is always this week, a change to how she lives is
+ * always a bigger decision further out.
+ */
+export type Horizon = 'short' | 'medium' | 'long'
+
+export const HORIZONS: Record<Horizon, { title: string; blurb: string }> = {
+  short: {
+    title: 'This week',
+    blurb: 'Quick things. Mostly just finding out what you already have.',
+  },
+  medium: {
+    title: 'Over the next few months',
+    blurb: 'Changes worth making once you know where you stand.',
+  },
+  long: {
+    title: 'Bigger decisions, further out',
+    blurb: 'No rush on these, but worth knowing what they are worth.',
+  },
+}
+
 export interface RankedAction {
   id: string
   headline: string
@@ -97,6 +121,7 @@ export interface RankedAction {
   /** 1 = a fifteen-minute job, 5 = changes how she lives. */
   effort: 1 | 2 | 3 | 4 | 5
   effortLabel: string
+  horizon: Horizon
   /** Ordering score. Higher is better. */
   score: number
   firstStep: string

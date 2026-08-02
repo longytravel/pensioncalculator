@@ -11,7 +11,13 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, Check, Copy, Sparkles } from 'lucide-react'
-import type { Insight, RankedAction, AccountantQuestion } from '@/lib/advice/types'
+import {
+  HORIZONS,
+  type Insight,
+  type RankedAction,
+  type AccountantQuestion,
+} from '@/lib/advice/types'
+import { byHorizon } from '@/lib/advice'
 
 const gbp = (n: number) =>
   Math.round(n).toLocaleString('en-GB', {
@@ -93,49 +99,60 @@ export function ActionPlan({ actions }: { actions: RankedAction[] }) {
         <h2 className="mt-1 text-xl font-bold uppercase">What to do next</h2>
       </header>
 
-      <ol className="divide-y">
-        {actions.map((action, i) => (
-          <li key={action.id} className="px-5 py-4">
-            <div className="flex items-start gap-4">
-              <span className="figure mt-0.5 text-lg text-muted-foreground">
-                {i + 1}
-              </span>
+      {byHorizon(actions).map((group) => (
+        <div key={group.horizon}>
+          <div className="border-b bg-muted px-5 py-3">
+            <p className="text-base font-bold uppercase">
+              {HORIZONS[group.horizon].title}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {HORIZONS[group.horizon].blurb}
+            </p>
+          </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold leading-snug">
-                  {action.headline}
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {action.detail}
-                </p>
+          <ol className="divide-y">
+            {group.actions.map((action, i) => (
+              <li key={action.id} className="px-5 py-4">
+                <div className="flex items-start gap-4">
+                  <span className="figure mt-0.5 text-lg text-muted-foreground">
+                    {i + 1}
+                  </span>
 
-                <p className="mt-2 text-sm">
-                  <span className="font-semibold">First step:</span>{' '}
-                  {action.firstStep}
-                </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-semibold leading-snug">
+                      {action.headline}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {action.detail}
+                    </p>
 
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span className="eyebrow">{action.effortLabel}</span>
-                  {action.unlocks && (
-                    <span>Unlocks {action.unlocks}</span>
-                  )}
+                    <p className="mt-2 text-sm">
+                      <span className="font-semibold">First step:</span>{' '}
+                      {action.firstStep}
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="eyebrow">{action.effortLabel}</span>
+                      {action.unlocks && <span>Unlocks {action.unlocks}</span>}
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <span className="figure block text-lg">
+                      {action.impactMonthly > 0
+                        ? `+${gbp(action.impactMonthly)}`
+                        : '—'}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      a month
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="shrink-0 text-right">
-                <span className="figure block text-lg">
-                  {action.impactMonthly > 0
-                    ? `+${gbp(action.impactMonthly)}`
-                    : '—'}
-                </span>
-                <span className="block text-[11px] text-muted-foreground">
-                  a month
-                </span>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
     </section>
   )
 }

@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * The input for a single step.
+ * The inputs on a wizard page.
  *
- * One question, one control, sized to sit comfortably in a phone viewport
- * without scrolling. Each kind of step renders its own control here so the
- * wizard shell stays about sequencing rather than form widgets.
+ * Pages hold several related questions, so each control carries its own label.
+ * The hero treatment (huge figure, no label) is reserved for pages with a
+ * single question, where the heading already says what the number is.
  */
 
 import * as React from 'react'
@@ -18,7 +18,7 @@ import {
   type FieldDef,
   type FieldName,
 } from '@/lib/fields'
-import type { StepKind } from '@/lib/wizard/steps'
+import type { Input } from '@/lib/wizard/steps'
 
 const gbp = (n: number) =>
   n.toLocaleString('en-GB', {
@@ -27,79 +27,90 @@ const gbp = (n: number) =>
     maximumFractionDigits: 0,
   })
 
-export function StepInput({ kind }: { kind: StepKind }) {
-  switch (kind.type) {
+export function StepInput({ input, solo }: { input: Input; solo: boolean }) {
+  switch (input.type) {
     case 'field':
     case 'money':
       return (
-        <BigNumber
-          field={kind.field}
-          unknownable={kind.type === 'money' && kind.unknownable}
+        <NumberField
+          field={input.field}
+          solo={solo}
+          unknownable={input.type === 'money' && input.unknownable}
         />
       )
     case 'target':
       return <TargetDial />
     case 'choice':
-      return <Cards kind={kind} />
-    case 'confirm':
-      return <StatePensionConfirm />
+      return <ChoiceGroup input={input} />
+    case 'statePension':
+      return <StatePension />
     case 'risk':
       return <RiskChoice />
   }
 }
 
-/**
- * A large figure with a slider under it.
- *
- * The number is the hero and is directly editable — sliders are good for "what
- * if" and useless for "it's exactly £312".
- */
-function BigNumber({
+function NumberField({
   field,
+  solo,
   unknownable,
 }: {
   field: FieldName
+  solo: boolean
   unknownable?: boolean
 }) {
   const store = useCalculatorStore()
   const def: FieldDef = FIELDS[field]
   const value = store.values[field]
+  const isUnknown = store.unknown[field] === true
 
   const [draft, setDraft] = React.useState<string | null>(null)
   const isMoney = def.format === 'gbp' || def.format === 'gbp-monthly'
+  const id = `f-${field}`
 
-  const commit = (next: number) => store.setValue(field, clampToField(field, next))
+  const commit = (next: number) =>
+    store.setValue(field, clampToField(field, next))
 
   return (
     <div>
-      <div className="flex items-baseline justify-center gap-1">
-        {isMoney && <span className="text-3xl text-muted-foreground">£</span>}
-        <input
-          inputMode="decimal"
-          aria-label={def.label}
-          value={draft ?? displayFor(def, value)}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => {
-            if (draft !== null) {
-              const parsed = parseFor(def, draft)
-              if (parsed !== null) commit(parsed)
-              setDraft(null)
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
-            if (e.key === 'Escape') setDraft(null)
-          }}
-          className="figure w-full max-w-[7ch] bg-transparent text-center text-5xl outline-none focus-visible:underline sm:text-6xl"
-        />
-        {def.format === 'percent' && (
-          <span className="text-3xl text-muted-foreground">%</span>
-        )}
-      </div>
+      <label htmlFor={id} className="block text-base font-semibold">
+        {def.label}
+      </label>
 
-      <p className="mt-1 text-center text-sm text-muted-foreground">
-        {suffixFor(def.format)}
-      </p>
+      <div className="mt-2 flex items-center gap-3">
+        <div className="relative">
+          {isMoney && (
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground"
+              aria-hidden="true"
+            >
+              £
+            </span>
+          )}
+          <input
+            id={id}
+            inputMode="decimal"
+            value={draft ?? displayFor(def, value)}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              if (draft !== null) {
+                const parsed = parseFor(def, draft)
+                if (parsed !== null) commit(parsed)
+                setDraft(null)
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') setDraft(null)
+            }}
+            className={`figure h-14 border bg-card text-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              solo ? 'w-44 text-3xl' : 'w-36 text-2xl'
+            } ${isMoney ? 'pl-7' : ''} ${isUnknown ? 'opacity-60' : ''}`}
+          />
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {suffixFor(def.format)}
+        </span>
+      </div>
 
       <input
         type="range"
@@ -109,33 +120,48 @@ function BigNumber({
         step={def.step}
         value={value}
         onChange={(e) => commit(Number(e.target.value))}
-        className="mt-6 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
+        className="mt-3 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
       />
-
       <div className="mt-1 flex justify-between text-xs text-muted-foreground">
         <span>{formatFieldValue(def.format, def.min)}</span>
         <span>{formatFieldValue(def.format, def.max)}</span>
       </div>
 
       {unknownable && (
-        <button
-          type="button"
-          onClick={() => store.setUnknown(field, true)}
-          className="mx-auto mt-5 block text-sm text-muted-foreground underline"
-        >
-          I don&rsquo;t know this off the top of my head
-        </button>
+        <div className="mt-2">
+          {isUnknown ? (
+            <p className="text-sm text-muted-foreground">
+              On your list to check. We&rsquo;ve used an estimate meanwhile
+              &mdash; not zero.{' '}
+              <button
+                type="button"
+                onClick={() => store.setUnknown(field, false)}
+                className="underline"
+              >
+                Actually, I know it
+              </button>
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => store.setUnknown(field, true)}
+              className="text-sm text-muted-foreground underline"
+            >
+              I don&rsquo;t know this &mdash; add it to my list
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
 }
 
 /**
- * The target income step.
+ * The target income control.
  *
- * Presets sit on the track as anchors rather than as the only choices — she can
- * drag or type past the top one. Someone who wants more than "comfortable"
- * must be able to say so.
+ * The presets are anchors, not the whole menu. She can type any figure,
+ * including more than the top one — the previous three-card version quietly
+ * capped her ambition, which was wrong.
  */
 function TargetDial() {
   const store = useCalculatorStore()
@@ -144,15 +170,15 @@ function TargetDial() {
   const monthly = Math.round(annual / 12)
 
   const [draft, setDraft] = React.useState<string | null>(null)
-
   const standards = RETIREMENT_LIVING_STANDARDS[store.region]
+
   const anchors = (['minimum', 'moderate', 'comfortable'] as const).map((k) => ({
     key: k,
     label:
       k === 'minimum'
         ? 'Covered'
         : k === 'moderate'
-          ? 'Comfortable enough'
+          ? 'Comfortable'
           : 'Really enjoying it',
     annual: standards[k][store.household],
   }))
@@ -184,7 +210,7 @@ function TargetDial() {
         />
       </div>
       <p className="mt-1 text-center text-sm text-muted-foreground">
-        a month, after tax &mdash; that&rsquo;s {gbp(annual)} a year
+        a month, after tax &mdash; {gbp(annual)} a year
       </p>
 
       <input
@@ -199,7 +225,7 @@ function TargetDial() {
       />
 
       <p className="mt-5 text-center text-xs text-muted-foreground">
-        Not sure? These are what real retired households actually spend.
+        Not sure? This is what real retired households actually spend.
       </p>
       <div className="mt-2 flex flex-wrap justify-center gap-2">
         {anchors.map((a) => (
@@ -222,67 +248,70 @@ function TargetDial() {
         ))}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Want more than that? Type any number you like above.
+        Want more than that? Type any figure you like.
       </p>
     </div>
   )
 }
 
-function Cards({ kind }: { kind: Extract<StepKind, { type: 'choice' }> }) {
+function ChoiceGroup({
+  input,
+}: {
+  input: Extract<Input, { type: 'choice' }>
+}) {
   const store = useCalculatorStore()
-  const current = store[kind.option] as string
+  const current = store[input.option] as string
 
   return (
-    <div className="flex flex-col gap-2">
-      {kind.choices.map((choice) => {
-        const selected = current === choice.value
-        return (
-          <button
-            key={choice.value}
-            type="button"
-            onClick={() =>
-              store.setOption(
-                kind.option as never,
-                choice.value as never,
-              )
-            }
-            aria-pressed={selected}
-            className={`min-h-14 border px-4 py-3 text-left text-base transition-colors ${
-              selected
-                ? 'border-foreground bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-            }`}
-          >
-            <span className="block font-semibold">{choice.label}</span>
-            {choice.note && (
-              <span className="mt-0.5 block text-sm opacity-80">
-                {choice.note}
-              </span>
-            )}
-          </button>
-        )
-      })}
-    </div>
+    <fieldset>
+      <legend className="text-base font-semibold">{input.label}</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {input.choices.map((choice) => {
+          const selected = current === choice.value
+          return (
+            <button
+              key={choice.value}
+              type="button"
+              onClick={() =>
+                store.setOption(input.option as never, choice.value as never)
+              }
+              aria-pressed={selected}
+              className={`min-h-12 border px-3 py-2 text-left text-sm transition-colors ${
+                selected
+                  ? 'border-foreground bg-primary text-primary-foreground'
+                  : 'hover:bg-muted'
+              }`}
+            >
+              <span className="block font-medium">{choice.label}</span>
+              {choice.note && (
+                <span className="mt-0.5 block text-xs opacity-80">
+                  {choice.note}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
   )
 }
 
-function StatePensionConfirm() {
+function StatePension() {
   const store = useCalculatorStore()
   const [adjusting, setAdjusting] = React.useState(false)
 
-  const full = 12547.6
   const years = store.values.qualifyingYears
-  const estimate = (full * Math.min(years, 35)) / 35
+  const estimate = (12547.6 * Math.min(years, 35)) / 35
 
   return (
     <div className="text-center">
-      <p className="figure text-5xl sm:text-6xl">
+      <p className="figure text-4xl sm:text-5xl">
         {gbp(Math.round(estimate / 12))}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
         a month, from age {store.values.statePensionAge}
       </p>
-      <p className="mt-4 text-base">
+      <p className="mt-3 text-base">
         That assumes {years} years of National Insurance. Most people who have
         worked steadily have the full 35.
       </p>
@@ -291,14 +320,14 @@ function StatePensionConfirm() {
         <button
           type="button"
           onClick={() => setAdjusting(true)}
-          className="mt-4 text-sm text-muted-foreground underline"
+          className="mt-3 text-sm text-muted-foreground underline"
         >
-          That&rsquo;s not right, let me change it
+          Let me change that
         </button>
       ) : (
-        <div className="mt-5 text-left">
+        <div className="mt-4 text-left">
           <label htmlFor="ni-years" className="text-sm font-medium">
-            Years of National Insurance
+            Years of National Insurance: {years}
           </label>
           <input
             id="ni-years"
@@ -312,14 +341,15 @@ function StatePensionConfirm() {
             }
             className="mt-2 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
           />
-          <p className="mt-1 text-center text-sm">{years} years</p>
+          <button
+            type="button"
+            onClick={() => store.setUnknown('qualifyingYears', true)}
+            className="mt-2 text-sm text-muted-foreground underline"
+          >
+            I don&rsquo;t know &mdash; add it to my list
+          </button>
         </div>
       )}
-
-      <p className="mt-5 text-xs text-muted-foreground">
-        You can check yours free at gov.uk &mdash; it takes two minutes and it
-        is worth doing.
-      </p>
     </div>
   )
 }
@@ -328,49 +358,42 @@ function RiskChoice() {
   const store = useCalculatorStore()
 
   const options = [
-    {
-      value: 'cautious' as const,
-      label: 'Cautious',
-      note: 'Steadier, but grows less',
-    },
-    {
-      value: 'balanced' as const,
-      label: 'Balanced',
-      note: 'The usual default',
-    },
-    {
-      value: 'growth' as const,
-      label: 'Adventurous',
-      note: 'Bumpier, tends to grow more',
-    },
+    { value: 'cautious' as const, label: 'Cautious', note: 'Steadier, grows less' },
+    { value: 'balanced' as const, label: 'Balanced', note: 'The usual default' },
+    { value: 'growth' as const, label: 'Adventurous', note: 'Bumpier, grows more' },
   ]
 
   return (
-    <div className="flex flex-col gap-2">
-      {options.map((o) => {
-        const selected = store.fundRiskLevel === o.value
-        return (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => store.setOption('fundRiskLevel', o.value)}
-            aria-pressed={selected}
-            className={`min-h-14 border px-4 py-3 text-left transition-colors ${
-              selected
-                ? 'border-foreground bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-            }`}
-          >
-            <span className="block font-semibold">{o.label}</span>
-            <span className="mt-0.5 block text-sm opacity-80">{o.note}</span>
-          </button>
-        )
-      })}
-      <p className="mt-2 text-center text-sm text-muted-foreground">
-        Genuinely no idea? Pick Balanced &mdash; it is where most people are put
-        by default, and we will help you check later.
+    <fieldset>
+      <legend className="text-base font-semibold">
+        How are they invested?
+      </legend>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Never chosen? You&rsquo;re almost certainly in the default, which is
+        usually Balanced.
       </p>
-    </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((o) => {
+          const selected = store.fundRiskLevel === o.value
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => store.setOption('fundRiskLevel', o.value)}
+              aria-pressed={selected}
+              className={`min-h-12 border px-3 py-2 text-left text-sm transition-colors ${
+                selected
+                  ? 'border-foreground bg-primary text-primary-foreground'
+                  : 'hover:bg-muted'
+              }`}
+            >
+              <span className="block font-medium">{o.label}</span>
+              <span className="mt-0.5 block text-xs opacity-80">{o.note}</span>
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
   )
 }
 
