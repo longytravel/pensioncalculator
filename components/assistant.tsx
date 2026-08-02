@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { useCalculatorStore } from '@/lib/store'
 import { buildSnapshot } from '@/lib/ai/snapshot'
 import { FIELDS, formatFieldValue, type FieldName } from '@/lib/fields'
+import { MODEL_ID, DEFAULT_EFFORT } from '@/lib/ai/config'
 
 /** What the route attaches via messageMetadata. */
 interface ChatMetadata {
@@ -244,11 +245,14 @@ function StatusBar({
           }`}
           aria-hidden="true"
         />
-        {meta?.model ?? 'gpt-5.6-luna'}
+        {meta?.model ?? MODEL_ID}
       </span>
 
       <span className="uppercase tracking-wide">
-        effort: <strong className="font-semibold">{meta?.effort ?? 'low'}</strong>
+        effort:{' '}
+        <strong className="font-semibold">
+          {meta?.effort ?? DEFAULT_EFFORT}
+        </strong>
       </span>
 
       {meta?.reasoningTokens !== undefined && (

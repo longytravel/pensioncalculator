@@ -35,6 +35,8 @@ import {
   InsightList,
 } from '@/components/advice-cards'
 import { advise } from '@/lib/advice'
+import { Comparison } from '@/components/comparison'
+import { compareDestinations, feeDrag } from '@/lib/advice/comparison'
 import { Alert } from '@/components/ui/alert'
 import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
 
@@ -355,6 +357,14 @@ export default function Plan() {
 
             <div className="mt-6">
               <ActionPlan actions={advice.actions} />
+            </div>
+
+            <div className="mt-6">
+              <Comparison
+                destinations={compareDestinations({ ...store, values }, advice.derived)}
+                feeDrag={feeDrag({ ...store, values }, advice.derived)}
+                years={advice.derived.yearsToRetirement}
+              />
             </div>
 
             <div className="mt-6">

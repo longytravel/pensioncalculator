@@ -10,7 +10,8 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MessageCircle, X } from 'lucide-react'
+import { Assistant } from '@/components/assistant'
 
 import {
   useCalculatorStore,
@@ -31,18 +32,40 @@ import { DEFAULT_VALUES } from '@/lib/fields'
  * The learning has to land where it was earned. Telling her about IR35 six
  * pages after she answered is worth almost nothing.
  */
+/**
+ * A question worth asking on each page.
+ *
+ * Prompting her beats an empty "ask me anything" box — she has said she does
+ * not know what she does not know, so the app should suggest it.
+ */
+const PAGE_QUESTIONS: Record<string, string> = {
+  about: 'Why can’t I get at my pension until 57?',
+  target: 'How do I work out what I actually need to live on?',
+  plans: 'What does taking a lump sum actually cost me?',
+  'state-pension': 'How do I check my National Insurance record?',
+  pensions: 'What does the risk setting on my Aviva pension mean?',
+  home: 'Should I overpay the mortgage or pay into my pension?',
+  downsize: 'How much would moving somewhere smaller really free up?',
+  savings: 'Is my money better in a pension or an ISA?',
+  business: 'Can I pay money from my business into my pension?',
+  'paying-in': 'What actually is IR35, in plain English?',
+  'company-pays': 'How much can my company put in?',
+}
+
 const PAGE_INSIGHTS: Record<string, string[]> = {
   about: ['bridge-gap', 'mortgage-clears-first'],
   'state-pension': ['state-pension-full', 'ni-gaps'],
   pensions: ['unknown-balance', 'cautious-too-early', 'charges-high'],
   home: ['mortgage-clears-first', 'mortgage-outlasts', 'equity-real'],
-  'other-money': ['no-isa'],
+  savings: ['no-isa'],
+  business: ['company-route-open'],
   'paying-in': ['ir35-unknown', 'company-route-open'],
   'company-pays': ['company-route-open'],
 }
 
 export default function Review() {
   const store = useCalculatorStore()
+  const [askOpen, setAskOpen] = React.useState(false)
   const hydrated = useStoreHydrated()
   const values = hydrated ? store.values : DEFAULT_VALUES
 
@@ -206,6 +229,21 @@ export default function Review() {
             )}
           </div>
 
+          {/* Prompting a question beats an empty box she has to fill. */}
+          {PAGE_QUESTIONS[page.id] && !askOpen && (
+            <button
+              type="button"
+              onClick={() => setAskOpen(true)}
+              className="mt-4 flex w-full items-center gap-2 border border-dashed px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+            >
+              <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
+              <span>
+                Not sure? Ask:{' '}
+                <span className="font-semibold">{PAGE_QUESTIONS[page.id]}</span>
+              </span>
+            </button>
+          )}
+
           <p className="mt-4 border-t pt-3 text-center text-xs text-muted-foreground">
             Saved as you go &mdash;{' '}
             <Link href="/" className="underline">
@@ -214,6 +252,28 @@ export default function Review() {
           </p>
         </div>
       </main>
+
+      {/* Slides over rather than navigating away, so she keeps her place. */}
+      {askOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <p className="eyebrow text-xs text-muted-foreground">
+              Ask anything &mdash; it can see your figures
+            </p>
+            <button
+              type="button"
+              onClick={() => setAskOpen(false)}
+              className="flex size-11 items-center justify-center"
+              aria-label="Close and go back to your review"
+            >
+              <X className="size-5" aria-hidden="true" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            <Assistant />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

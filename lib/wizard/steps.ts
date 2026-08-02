@@ -33,6 +33,7 @@ export type Input =
   | { type: 'risk' }
 
 export type ChoiceOption =
+  | 'contributionEscalation'
   | 'taperingStyle'
   | 'lumpSumIntent'
   | 'downsizeIntent'
@@ -155,6 +156,7 @@ export const PAGES: WizardPage[] = [
       { type: 'money', field: 'avivaBalance', unknownable: true },
       { type: 'money', field: 'peoplesPensionBalance', unknownable: true },
       { type: 'risk' },
+      { type: 'money', field: 'annualChargeRate', unknownable: true },
     ],
   },
 
@@ -166,6 +168,9 @@ export const PAGES: WizardPage[] = [
     inputs: [
       { type: 'money', field: 'houseValue' },
       { type: 'money', field: 'mortgageBalance' },
+      { type: 'money', field: 'mortgageRate' },
+      { type: 'field', field: 'mortgageYearsLeft' },
+      { type: 'money', field: 'mortgageOverpayment' },
     ],
   },
 
@@ -182,13 +187,26 @@ export const PAGES: WizardPage[] = [
   },
 
   {
-    id: 'other-money',
+    id: 'savings',
     chapter: 'have',
-    title: 'Savings, and anything from the business',
-    why: 'Unlike a pension, savings have no age lock.',
+    title: 'Savings and ISAs',
+    why: 'Unlike a pension, you can reach these at any age &mdash; which matters if you ever want to stop before 57.',
     inputs: [
       { type: 'money', field: 'cashIsaBalance' },
+      { type: 'money', field: 'cashIsaMonthly' },
+    ],
+  },
+
+  {
+    id: 'business',
+    chapter: 'have',
+    title: 'Anything coming from the business?',
+    why: 'Be conservative. A business is worth what someone will actually pay for it.',
+    // Someone on payroll has no business to draw from.
+    when: (s) => s.workingArrangement !== 'employee',
+    inputs: [
       { type: 'money', field: 'businessCashAmount' },
+      { type: 'field', field: 'businessCashAge' },
     ],
   },
 
@@ -199,6 +217,16 @@ export const PAGES: WizardPage[] = [
     why: 'The part you can actually change &mdash; and where the biggest wins are.',
     inputs: [
       { type: 'money', field: 'personalMonthlyContribution' },
+      {
+        type: 'choice',
+        option: 'contributionEscalation',
+        label: 'Will you increase it over time?',
+        choices: [
+          { value: 'none', label: 'Keep it the same' },
+          { value: 'inflation', label: 'Rise with prices' },
+          { value: 'salary', label: 'Rise with my income' },
+        ],
+      },
       {
         type: 'choice',
         option: 'workingArrangement',

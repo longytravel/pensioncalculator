@@ -17,29 +17,18 @@ import {
 import { z } from 'zod'
 
 import { SYSTEM_PROMPT, factPack, stateContext } from '@/lib/ai/prompt'
+import { MODEL_ID, DEFAULT_EFFORT, PRICE_PER_MTOK } from '@/lib/ai/config'
 import { FIELDS } from '@/lib/fields'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-export const MODEL_ID = 'gpt-5.6-luna'
-
 /**
- * Reasoning effort is always passed explicitly.
- *
- * OpenAI's docs and Vercel's gateway docs disagree about Luna's default, and a
- * live test showed omitting it still produces reasoning tokens — so relying on
- * the default would make the status bar lie.
- *
- * Raised from 'low' to 'medium'. At low it answered accurately but flatly, and
- * once it had to weigh her IR35 position, the 57 access age and the mortgage
- * date together, the reasoning was visibly thin. At roughly a tenth of a penny
- * a message the extra thinking is free in any practical sense.
+ * Effort is always passed explicitly. OpenAI's docs and Vercel's disagree
+ * about Luna's default, and a live test showed omitting it still produces
+ * reasoning tokens — so relying on the default would make the status bar lie.
  */
-const REASONING_EFFORT = 'medium' as const
-
-/** Per-million-token prices, for the running cost in the status bar. */
-const PRICE_PER_MTOK = { input: 0.2, cachedInput: 0.02, output: 1.2 }
+const REASONING_EFFORT = DEFAULT_EFFORT
 
 /** Field names the assistant is allowed to propose changes to. */
 const SUGGESTABLE = [

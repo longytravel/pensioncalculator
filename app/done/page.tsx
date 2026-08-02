@@ -16,6 +16,8 @@ import { Check, Circle, ArrowUpRight } from 'lucide-react'
 import { useCalculatorStore, useStoreHydrated } from '@/lib/store'
 import { advise } from '@/lib/advice'
 import { ActionPlan, AccountantPanel } from '@/components/advice-cards'
+import { Comparison } from '@/components/comparison'
+import { compareDestinations, feeDrag } from '@/lib/advice/comparison'
 import { DEFAULT_VALUES, FIELDS, type FieldName } from '@/lib/fields'
 
 const gbp = (n: number) =>
@@ -131,6 +133,14 @@ export default function Done() {
 
       <div className="mt-6">
         <ActionPlan actions={advice.actions} />
+      </div>
+
+      <div className="mt-6">
+        <Comparison
+          destinations={compareDestinations({ ...store, values }, d)}
+          feeDrag={feeDrag({ ...store, values }, d)}
+          years={d.yearsToRetirement}
+        />
       </div>
 
       <div className="mt-6">
