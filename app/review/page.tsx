@@ -21,7 +21,28 @@ import { project } from '@/lib/engine/project'
 import { visibleSteps, CHAPTERS, type WizardVisibleState } from '@/lib/wizard/steps'
 import { NumberBar, type NumberBarState } from '@/components/wizard/number-bar'
 import { StepInput } from '@/components/wizard/step-input'
+import { InsightCard } from '@/components/advice-cards'
+import { advise } from '@/lib/advice'
 import { DEFAULT_VALUES } from '@/lib/fields'
+
+/**
+ * Which insight belongs to which step.
+ *
+ * The learning has to land at the step that earned it — telling her about IR35
+ * twenty screens after she answered the question is worth almost nothing.
+ */
+const STEP_INSIGHTS: Record<string, string[]> = {
+  'retire-age': ['bridge-gap', 'mortgage-clears-first', 'mortgage-outlasts'],
+  'state-pension': ['state-pension-full', 'ni-gaps'],
+  'aviva-balance': ['unknown-balance'],
+  'aviva-risk': ['cautious-too-early', 'charges-high'],
+  'peoples-balance': ['unknown-balance'],
+  isa: ['no-isa'],
+  'house-value': ['equity-real'],
+  mortgage: ['mortgage-clears-first', 'mortgage-outlasts'],
+  arrangement: ['ir35-unknown', 'company-route-open'],
+  'company-contribution': ['company-route-open'],
+}
 
 export default function Review() {
   const store = useCalculatorStore()
@@ -83,6 +104,20 @@ export default function Review() {
             goalMonthly: Math.round(values.targetIncome / 12),
           }
 
+  // Recomputed live, so the insight reflects the answer she just gave.
+  const advice = React.useMemo(() => {
+    try {
+      return advise({ ...store, values })
+    } catch {
+      return null
+    }
+  }, [store, values])
+
+  const stepInsights = (STEP_INSIGHTS[step?.id ?? ''] ?? [])
+    .map((id) => advice?.insights.find((i) => i.id === id))
+    .filter((i) => i !== undefined)
+    .slice(0, 1)
+
   const go = (delta: number) => {
     const next = steps[index + delta]
     if (next) store.goToStep(next.id)
@@ -123,8 +158,17 @@ export default function Review() {
           <p className="mt-2 text-base text-muted-foreground">{step.why}</p>
         )}
 
-        <div className="my-auto py-8">
+        <div className="my-auto py-6">
           <StepInput kind={step.kind} />
+
+          {/* Lands under the input she just used, not on a later screen. */}
+          {stepInsights.length > 0 && (
+            <div className="mt-6 space-y-3">
+              {stepInsights.map((insight) => (
+                <InsightCard key={insight.id} insight={insight} />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-auto">

@@ -29,6 +29,12 @@ import { LiveHeader } from '@/components/live-header'
 import { Assistant } from '@/components/assistant'
 import { Objectives } from '@/components/objectives'
 import { Guides } from '@/components/guides'
+import {
+  ActionPlan,
+  AccountantPanel,
+  InsightList,
+} from '@/components/advice-cards'
+import { advise } from '@/lib/advice'
 import { Alert } from '@/components/ui/alert'
 import { DEFAULT_VALUES, type FieldName } from '@/lib/fields'
 
@@ -131,6 +137,15 @@ export default function Plan() {
         error:
           e instanceof EngineInputError ? e.message : 'Something went wrong.',
       }
+    }
+  }, [store, values])
+
+  // The whole advisory layer, recomputed from her current state.
+  const advice = React.useMemo(() => {
+    try {
+      return advise({ ...store, values })
+    } catch {
+      return null
     }
   }, [store, values])
 
@@ -330,6 +345,25 @@ export default function Plan() {
               ))}
             </ul>
           </Alert>
+        )}
+
+        {advice && (
+          <>
+            <div className="mt-6">
+              <InsightList insights={advice.insights} />
+            </div>
+
+            <div className="mt-6">
+              <ActionPlan actions={advice.actions} />
+            </div>
+
+            <div className="mt-6">
+              <AccountantPanel
+                questions={advice.accountantQuestions}
+                emailBody={advice.emailBody}
+              />
+            </div>
+          </>
         )}
 
         <div className="mt-6">
