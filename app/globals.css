@@ -250,8 +250,9 @@ input[type='range'] {
   appearance: none;
   background: transparent;
   height: 44px;
-  /* Cancel the extra height so it still sits tight in the layout. */
-  margin-block: -14px;
+  /* Only claw back part of the extra height — pulling it all back made the
+     32px thumb collide with the number field above it. */
+  margin-block: -6px;
   touch-action: manipulation;
 }
 

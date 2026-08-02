@@ -76,7 +76,7 @@ function NumberField({
         {def.label}
       </label>
 
-      <div className="mt-2 flex items-center gap-3">
+      <div className="mt-1.5 flex items-center gap-3">
         <div className="relative">
           {isMoney && (
             <span
@@ -102,9 +102,9 @@ function NumberField({
               if (e.key === 'Enter') e.currentTarget.blur()
               if (e.key === 'Escape') setDraft(null)
             }}
-            className={`figure h-14 border bg-card text-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              solo ? 'w-44 text-3xl' : 'w-36 text-2xl'
-            } ${isMoney ? 'pl-7' : ''} ${isUnknown ? 'opacity-60' : ''}`}
+            className={`figure h-12 border bg-card text-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              solo ? 'w-40 text-2xl' : 'w-32 text-xl'
+            } ${isMoney ? 'pl-6' : ''} ${isUnknown ? 'opacity-60' : ''}`}
           />
         </div>
         <span className="text-sm text-muted-foreground">
@@ -120,9 +120,9 @@ function NumberField({
         step={def.step}
         value={value}
         onChange={(e) => commit(Number(e.target.value))}
-        className="mt-3 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
+        className="mt-4 w-full cursor-pointer appearance-none bg-transparent accent-primary"
       />
-      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{formatFieldValue(def.format, def.min)}</span>
         <span>{formatFieldValue(def.format, def.max)}</span>
       </div>
@@ -221,10 +221,10 @@ function TargetDial() {
         step={25}
         value={monthly}
         onChange={(e) => setMonthly(Number(e.target.value))}
-        className="mt-6 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
+        className="mt-5 w-full cursor-pointer appearance-none bg-transparent accent-primary"
       />
 
-      <p className="mt-5 text-center text-xs text-muted-foreground">
+      <p className="mt-4 text-center text-xs text-muted-foreground">
         Not sure? This is what real retired households actually spend.
       </p>
       <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -339,7 +339,7 @@ function StatePension() {
             onChange={(e) =>
               store.setValue('qualifyingYears', Number(e.target.value))
             }
-            className="mt-2 h-2 w-full cursor-pointer appearance-none bg-muted accent-primary"
+            className="mt-2 w-full cursor-pointer appearance-none bg-transparent accent-primary"
           />
           <button
             type="button"

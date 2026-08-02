@@ -19,6 +19,7 @@ import { ActionPlan, AccountantPanel } from '@/components/advice-cards'
 import { Comparison } from '@/components/comparison'
 import { compareDestinations, feeDrag } from '@/lib/advice/comparison'
 import { DEFAULT_VALUES, FIELDS, type FieldName } from '@/lib/fields'
+import { StartAgain } from '@/components/start-again'
 
 const gbp = (n: number) =>
   Math.round(n).toLocaleString('en-GB', {
@@ -165,7 +166,11 @@ export default function Done() {
         </Link>
       </div>
 
-      <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
+      <div className="mt-6 border-t pt-4">
+        <StartAgain />
+      </div>
+
+      <footer className="mt-8 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
         <p>
           Information and estimates to help you think &mdash; not financial
           advice. Figures are estimates, not guarantees. Free impartial guidance

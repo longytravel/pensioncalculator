@@ -35,6 +35,7 @@ import {
   InsightList,
 } from '@/components/advice-cards'
 import { advise } from '@/lib/advice'
+import { StartAgain } from '@/components/start-again'
 import { Comparison } from '@/components/comparison'
 import { compareDestinations, feeDrag } from '@/lib/advice/comparison'
 import { Alert } from '@/components/ui/alert'
@@ -384,7 +385,11 @@ export default function Plan() {
           <Assistant />
         </div>
 
-        <footer className="mt-10 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
+        <div className="mt-6 border-t pt-4">
+          <StartAgain />
+        </div>
+
+        <footer className="mt-8 border-t pt-6 text-sm leading-relaxed text-muted-foreground">
           <p>
             Information and estimates to help you think &mdash; not financial
             advice. Figures are estimates, not guarantees, and investments can

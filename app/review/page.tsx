@@ -24,6 +24,7 @@ import { NumberBar, type NumberBarState } from '@/components/wizard/number-bar'
 import { StepInput } from '@/components/wizard/step-input'
 import { InsightCard } from '@/components/advice-cards'
 import { advise } from '@/lib/advice'
+import { StartAgain } from '@/components/start-again'
 import { DEFAULT_VALUES } from '@/lib/fields'
 
 /**
@@ -169,23 +170,23 @@ export default function Review() {
         />
       </div>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-6 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-4 sm:px-6">
         <p className="eyebrow text-[11px] text-muted-foreground">
           {CHAPTERS[page.chapter]} &middot; {index + 1} of {pages.length}
         </p>
 
         <h1
-          className="mt-2 text-2xl font-bold leading-tight sm:text-3xl"
+          className="mt-1.5 text-xl font-bold leading-tight sm:text-2xl"
           dangerouslySetInnerHTML={{ __html: page.title }}
         />
         {page.why && (
           <p
-            className="mt-2 text-base text-muted-foreground"
+            className="mt-1 text-sm text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: page.why }}
           />
         )}
 
-        <div className="flex-1 space-y-6 py-5">
+        <div className="flex-1 space-y-5 py-4">
           {page.inputs.map((input, i) => (
             <StepInput
               key={i}
@@ -250,15 +251,12 @@ export default function Review() {
             </button>
           )}
 
-          <p className="mt-4 border-t pt-3 text-center text-xs text-muted-foreground">
-            Saved as you go &mdash;{' '}
-            <Link
-              href="/"
-              className="inline-flex min-h-11 items-center px-2 underline"
-            >
-              stop any time and come back
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-2 text-xs text-muted-foreground">
+            <Link href="/" className="inline-flex min-h-11 items-center underline">
+              Saved &mdash; stop any time
             </Link>
-          </p>
+            <StartAgain />
+          </div>
         </div>
       </main>
 
