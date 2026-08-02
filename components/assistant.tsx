@@ -169,7 +169,7 @@ export function Assistant({
                     key={i}
                     className="whitespace-pre-wrap text-base leading-relaxed"
                   >
-                    {part.text}
+                    {renderBold(part.text)}
                   </p>
                 )
               }
@@ -322,6 +322,18 @@ function StatusBar({
       )}
     </div>
   )
+}
+
+/**
+ * The model bolds key phrases with **asterisks** no matter how it's prompted.
+ * Render them as bold rather than showing her the plumbing.
+ */
+function renderBold(text: string): React.ReactNode[] {
+  return text
+    .split(/\*\*(.+?)\*\*/g)
+    .map((chunk, i) =>
+      i % 2 === 1 ? <strong key={i}>{chunk}</strong> : chunk,
+    )
 }
 
 function SuggestionChip({
