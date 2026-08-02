@@ -235,3 +235,66 @@
 .btn-square {
   border-radius: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Touch targets.
+
+   A mobile audit found the native range inputs rendering as an 8px-tall strip
+   — technically operable, hopeless with a thumb. These give the whole control
+   a 44px touch area while keeping the track visually thin, and enlarge the
+   thumb itself well past the WCAG minimum.
+   --------------------------------------------------------------------------- */
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 44px;
+  /* Cancel the extra height so it still sits tight in the layout. */
+  margin-block: -14px;
+  touch-action: manipulation;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 10px;
+  background: var(--muted);
+  border-radius: 0;
+}
+
+input[type='range']::-moz-range-track {
+  height: 10px;
+  background: var(--muted);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -11px;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+input[type='range']:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* iOS zooms the page when a focused input is under 16px. Never let it. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1rem);
+}

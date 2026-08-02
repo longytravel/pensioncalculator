@@ -43,8 +43,10 @@ const PAGE_QUESTIONS: Record<string, string> = {
   target: 'How do I work out what I actually need to live on?',
   plans: 'What does taking a lump sum actually cost me?',
   'state-pension': 'How do I check my National Insurance record?',
-  pensions: 'What does the risk setting on my Aviva pension mean?',
-  home: 'Should I overpay the mortgage or pay into my pension?',
+  pensions: 'What if I have lost track of an old pension?',
+  'pension-detail': 'What does the risk setting on my Aviva pension mean?',
+  home: 'Is my house really my pension?',
+  'mortgage-detail': 'Should I overpay the mortgage or pay into my pension?',
   downsize: 'How much would moving somewhere smaller really free up?',
   savings: 'Is my money better in a pension or an ISA?',
   business: 'Can I pay money from my business into my pension?',
@@ -55,8 +57,10 @@ const PAGE_QUESTIONS: Record<string, string> = {
 const PAGE_INSIGHTS: Record<string, string[]> = {
   about: ['bridge-gap', 'mortgage-clears-first'],
   'state-pension': ['state-pension-full', 'ni-gaps'],
-  pensions: ['unknown-balance', 'cautious-too-early', 'charges-high'],
-  home: ['mortgage-clears-first', 'mortgage-outlasts', 'equity-real'],
+  pensions: ['unknown-balance'],
+  'pension-detail': ['cautious-too-early', 'charges-high'],
+  home: ['equity-real'],
+  'mortgage-detail': ['mortgage-clears-first', 'mortgage-outlasts'],
   savings: ['no-isa'],
   business: ['company-route-open'],
   'paying-in': ['ir35-unknown', 'company-route-open'],
@@ -179,7 +183,7 @@ export default function Review() {
           />
         )}
 
-        <div className="flex-1 space-y-7 py-7">
+        <div className="flex-1 space-y-6 py-5">
           {page.inputs.map((input, i) => (
             <StepInput
               key={i}
@@ -212,7 +216,7 @@ export default function Review() {
               type="button"
               onClick={() => go(-1)}
               disabled={index === 0}
-              className="flex items-center gap-1 text-muted-foreground underline disabled:opacity-40"
+              className="flex min-h-11 items-center gap-1 px-2 text-muted-foreground underline disabled:opacity-40"
             >
               <ArrowLeft className="size-4" aria-hidden="true" />
               Back
@@ -222,7 +226,7 @@ export default function Review() {
               <button
                 type="button"
                 onClick={() => advance('skipped')}
-                className="text-muted-foreground underline"
+                className="flex min-h-11 items-center px-2 text-muted-foreground underline"
               >
                 Skip for now
               </button>

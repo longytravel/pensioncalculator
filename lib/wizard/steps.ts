@@ -155,6 +155,15 @@ export const PAGES: WizardPage[] = [
     inputs: [
       { type: 'money', field: 'avivaBalance', unknownable: true },
       { type: 'money', field: 'peoplesPensionBalance', unknownable: true },
+    ],
+  },
+
+  {
+    id: 'pension-detail',
+    chapter: 'have',
+    title: 'How are they invested?',
+    why: 'The question you asked first &mdash; and the one worth five minutes.',
+    inputs: [
       { type: 'risk' },
       { type: 'money', field: 'annualChargeRate', unknownable: true },
     ],
@@ -168,6 +177,17 @@ export const PAGES: WizardPage[] = [
     inputs: [
       { type: 'money', field: 'houseValue' },
       { type: 'money', field: 'mortgageBalance' },
+    ],
+  },
+
+  {
+    id: 'mortgage-detail',
+    chapter: 'have',
+    title: 'A bit more about the mortgage',
+    why: 'This tells us whether it is gone before your income stops.',
+    // Nothing to ask if it is already paid off.
+    when: (s) => s.values.mortgageBalance > 0,
+    inputs: [
       { type: 'money', field: 'mortgageRate' },
       { type: 'field', field: 'mortgageYearsLeft' },
       { type: 'money', field: 'mortgageOverpayment' },
