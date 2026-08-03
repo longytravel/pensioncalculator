@@ -84,6 +84,7 @@ export function buildSnapshot(source: SnapshotSource) {
       totalNow: v.avivaBalance + v.peoplesPensionBalance,
       annualChargePercent: Number((v.annualChargeRate * 100).toFixed(2)),
       paysInPersonallyPerMonth: v.personalMonthlyContribution,
+      oneOffTopUpsPerYearAverage: v.pensionLumpYearly,
       companyPaysInPerMonth: v.employerMonthlyContribution,
       fundRisk: source.fundRiskLevel,
       statePensionAge: v.statePensionAge,
@@ -137,6 +138,7 @@ export function buildSnapshot(source: SnapshotSource) {
     otherMoney: {
       cashIsa: v.cashIsaBalance,
       savingPerMonth: v.cashIsaMonthly,
+      savingsLumpsPerYearAverage: v.cashIsaLumpYearly,
       businessCashExpected: v.businessCashAmount,
       businessCashAtAge: v.businessCashAge,
     },

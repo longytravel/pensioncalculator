@@ -217,6 +217,7 @@ export const PAGES: WizardPage[] = [
     inputs: [
       { type: 'money', field: 'cashIsaBalance' },
       { type: 'money', field: 'cashIsaMonthly' },
+      { type: 'money', field: 'cashIsaLumpYearly' },
     ],
   },
 
@@ -240,6 +241,7 @@ export const PAGES: WizardPage[] = [
     why: 'The part you can actually change &mdash; and where the biggest wins are.',
     inputs: [
       { type: 'money', field: 'personalMonthlyContribution' },
+      { type: 'money', field: 'pensionLumpYearly' },
       {
         type: 'choice',
         option: 'contributionEscalation',

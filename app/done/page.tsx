@@ -112,6 +112,21 @@ export default function Done() {
           {' a month you said you wanted.'}
         </p>
 
+        {/* The lifestyle figures assume no mortgage. If hers outlasts the
+            income, say what that really means rather than leaving a footnote. */}
+        {d.mortgageClearAge !== null &&
+          d.mortgageClearAge > values.retirementAge && (
+            <p className="mt-2 border-l-4 border-l-muted-foreground bg-muted p-3 text-sm leading-relaxed">
+              {'One thing to hold in mind: on your figures the mortgage runs to '}
+              <strong>{d.mortgageClearAge}</strong>
+              {', past when you stop. Until it clears you would really want about '}
+              <strong>{gbp(d.targetMonthly + d.mortgageMonthly)} a month</strong>
+              {', not '}
+              {gbp(d.targetMonthly)}
+              {'. Clearing it before you stop makes that line disappear.'}
+            </p>
+          )}
+
         {!d.onTrack && (
           <p className="mt-3 border-l-4 border-l-destructive bg-muted p-3 text-base">
             {'That leaves '}

@@ -108,7 +108,7 @@ function NumberField({
           />
         </div>
         <span className="text-sm text-muted-foreground">
-          {field === 'salary' ? 'a year' : suffixFor(def.format)}
+          {def.suffix ?? suffixFor(def.format)}
         </span>
       </div>
 

@@ -79,7 +79,11 @@ const SECTIONS: Section[] = [
     title: 'What goes in each month',
     blurb:
       'The two boxes that move your number the most. The second one is the interesting one.',
-    fields: ['personalMonthlyContribution', 'employerMonthlyContribution'],
+    fields: [
+      'personalMonthlyContribution',
+      'pensionLumpYearly',
+      'employerMonthlyContribution',
+    ],
     open: true,
   },
   {
@@ -121,6 +125,7 @@ const SECTIONS: Section[] = [
       'businessCashAge',
       'cashIsaBalance',
       'cashIsaMonthly',
+      'cashIsaLumpYearly',
       'salary',
       'currentAge',
     ],

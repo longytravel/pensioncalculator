@@ -50,6 +50,8 @@ export interface CashISA {
   annualGrowthRate: number
   /** Monthly amount she adds, £. */
   monthlyContribution: number
+  /** One-off amounts, averaged per year, £. */
+  yearlyLumpSum?: number
 }
 
 export interface StatePensionInput {
@@ -83,6 +85,12 @@ export interface CalculatorInputs {
 
   /** What she pays in personally each month, £. */
   personalMonthlyContribution: number
+  /**
+   * One-off personal top-ups, averaged per year, £. Contractor income arrives
+   * in lumps; this models "a good year lets me drop some in". Grossed up for
+   * relief at source exactly like the monthly amount.
+   */
+  personalYearlyLumpSum?: number
   /**
    * Employer / limited-company contribution each month, £. Always gross —
    * never grossed up for tax relief, because employers pay gross already.

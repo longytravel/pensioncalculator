@@ -304,6 +304,46 @@ describe('the gap', () => {
   })
 })
 
+describe('yearly lump-sum top-ups', () => {
+  it('credits pension lumps with relief-at-source gross-up', () => {
+    const base = project(kirsten()).scenarios.mid.potAtRetirement
+    const withLump = project(
+      kirsten({ personalYearlyLumpSum: 4000 }),
+    ).scenarios.mid.potAtRetirement
+
+    // 22 years of £4,000 grossed up to £5,000 each. Output is in today's
+    // money, so deflation pulls the nominal £110k stream back down — but
+    // with positive real growth it must still clear the net-of-relief sum.
+    expect(withLump - base).toBeGreaterThan(22 * 4000)
+
+    // Net pay gets no gross-up, so the same lump adds 25% less.
+    const netPayBase = project(kirsten({ contributionType: 'net_pay' }))
+      .scenarios.mid.potAtRetirement
+    const netPayLump = project(
+      kirsten({ contributionType: 'net_pay', personalYearlyLumpSum: 4000 }),
+    ).scenarios.mid.potAtRetirement
+    expect((withLump - base) / (netPayLump - netPayBase)).toBeCloseTo(1.25, 2)
+  })
+
+  it('credits ISA lumps into the ISA pot', () => {
+    const out = project(
+      kirsten({
+        cashISA: {
+          balance: 0,
+          annualGrowthRate: 0.025,
+          monthlyContribution: 0,
+          yearlyLumpSum: 2000,
+        },
+      }),
+    )
+    const lastWorkingRow = out.scenarios.mid.rows.find(
+      (r) => r.age === kirsten().retirementAge,
+    )
+    // 22 lumps of £2,000, deflated to today's money, must be most of £44k.
+    expect(lastWorkingRow?.isa ?? 0).toBeGreaterThan(30000)
+  })
+})
+
 describe('decumulation methods', () => {
   it('all three produce a positive income', () => {
     for (const method of ['swr', 'amortise', 'annuity'] as const) {

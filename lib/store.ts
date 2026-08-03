@@ -404,6 +404,7 @@ export function toEngineInputs(state: {
       },
     ],
     personalMonthlyContribution: v.personalMonthlyContribution,
+    personalYearlyLumpSum: v.pensionLumpYearly,
     employerMonthlyContribution: v.employerMonthlyContribution,
     contributionType: state.contributionType,
     contributionEscalation: { mode: state.contributionEscalation },
@@ -413,6 +414,7 @@ export function toEngineInputs(state: {
       balance: v.cashIsaBalance,
       annualGrowthRate: 0.025,
       monthlyContribution: v.cashIsaMonthly,
+      yearlyLumpSum: v.cashIsaLumpYearly,
     },
     statePension: {
       statePensionAge: v.statePensionAge,

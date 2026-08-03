@@ -30,6 +30,8 @@ export interface FieldDef {
   /** Jump size for Page Up/Down and Shift+Arrow. */
   largeStep?: number
   format: FieldFormat
+  /** Unit text after the number box, when the format's default reads wrong. */
+  suffix?: string
   default: number
 }
 
@@ -82,6 +84,7 @@ export const FIELDS = {
     step: 500,
     largeStep: 5000,
     format: 'gbp',
+    suffix: 'a year',
     default: 50000,
   },
 
@@ -96,6 +99,22 @@ export const FIELDS = {
     largeStep: 250,
     format: 'gbp-monthly',
     default: 250,
+  },
+
+  pensionLumpYearly: {
+    label: 'Any one-off top-ups, in a typical year?',
+    helper:
+      'Contracting money comes in lumps. Average it out — a rough figure is fine, and zero is fine too.',
+    explainer:
+      'One-off pension top-ups get the same tax relief as regular ones: pay in £4,000 personally and £5,000 lands in the pension. Good years can carry lean ones — what matters over twenty years is the average, not the rhythm. If it would be the company paying rather than you, that belongs in the company contribution box instead.',
+    min: 0,
+    max: 60000,
+    sliderMax: 20000,
+    step: 250,
+    largeStep: 1000,
+    format: 'gbp',
+    suffix: 'a year, on average',
+    default: 0,
   },
 
   employerMonthlyContribution: {
@@ -178,6 +197,21 @@ export const FIELDS = {
     default: 0,
   },
 
+  cashIsaLumpYearly: {
+    label: 'And the odd lump into savings?',
+    helper: 'Same idea — average what lands in savings in a typical year.',
+    explainer:
+      'The ISA allowance is £20,000 a year, and unlike a pension you can take this money back out at any age. That makes lump sums here your flexibility fund — especially for any years between stopping work and your pensions unlocking at 57.',
+    min: 0,
+    max: 20000,
+    sliderMax: 20000,
+    step: 250,
+    largeStep: 1000,
+    format: 'gbp',
+    suffix: 'a year, on average',
+    default: 0,
+  },
+
   houseValue: {
     label: 'What is your house worth?',
     helper: 'Roughly what it would sell for today.',
@@ -232,7 +266,8 @@ export const FIELDS = {
 
   mortgageOverpayment: {
     label: 'Could you overpay each month?',
-    helper: 'Try moving this and watch the interest saved.',
+    helper:
+      'Overpay in occasional lumps instead? Average them — £1,200 once a year is £100 a month here.',
     explainer:
       'Overpaying is one of the few genuinely risk-free returns available. Every pound off the balance saves you the interest that pound would have cost for the rest of the term. The trade-off is that money in a mortgage is hard to get back out, and it gets no tax relief — unlike a pension contribution. Most lenders allow overpayments of 10% of the balance a year without penalty, but check yours.',
     min: 0,

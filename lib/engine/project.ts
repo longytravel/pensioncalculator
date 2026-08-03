@@ -272,6 +272,22 @@ function runScenario(
         (monthlyPersonal + monthlyEmployer) * 12
       state.cumulativeRelief += monthlyRelief * 12
 
+      // One-off top-ups land once a year, at year end — deliberately earning
+      // nothing in the year they arrive, which keeps the estimate on the
+      // conservative side of her actual habit.
+      const lumpNet = (inputs.personalYearlyLumpSum ?? 0) * escalationFactor
+      if (lumpNet > 0) {
+        const lumpGross =
+          inputs.contributionType === 'relief_at_source'
+            ? grossUpContribution(lumpNet, assumptions.basicRateReliefRate)
+            : lumpNet
+        state.pension += lumpGross
+        state.cumulativeContributions += lumpGross
+        state.cumulativeRelief += lumpGross - lumpNet
+      }
+      const isaLump = (inputs.cashISA?.yearlyLumpSum ?? 0) * escalationFactor
+      if (isaLump > 0) state.isa += isaLump
+
       state.pension += nominalLumpSum
 
       if (yearIndex === yearsToRetirement - 1) {
