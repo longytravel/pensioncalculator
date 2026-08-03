@@ -43,3 +43,6 @@ dev.log
 
 .vercel
 .env*
+
+# One-off Playwright verification scripts
+.*.mjs
