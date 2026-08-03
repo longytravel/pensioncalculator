@@ -56,15 +56,20 @@ const PAGE_QUESTIONS: Record<string, string> = {
   'company-pays': 'How much can my company put in?',
 }
 
+/**
+ * The rule that keeps this honest: an insight may only appear on the page
+ * where its inputs live, or later. An insight computed from defaults she has
+ * not seen yet reads as a random claim from nowhere — the mortgage card on
+ * page one was exactly that.
+ */
 const PAGE_INSIGHTS: Record<string, string[]> = {
-  about: ['bridge-gap', 'mortgage-clears-first'],
+  about: ['bridge-gap'],
   'state-pension': ['state-pension-full', 'ni-gaps'],
   pensions: ['unknown-balance'],
   'pension-detail': ['cautious-too-early', 'charges-high'],
   home: ['equity-real'],
   'mortgage-detail': ['mortgage-clears-first', 'mortgage-outlasts'],
   savings: ['no-isa'],
-  business: ['company-route-open'],
   'paying-in': [],
   arrangement: ['ir35-unknown', 'company-route-open'],
   'company-pays': ['company-route-open'],

@@ -87,11 +87,11 @@ function derive(state: AdviceState): Derived {
     bridgeYears,
     totalPensionNow: v.avivaBalance + v.peoplesPensionBalance,
     homeEquity,
-    mortgageMonthly: monthlyPayment(
-      v.mortgageBalance,
-      v.mortgageRate,
-      v.mortgageYearsLeft,
-    ),
+    // What actually stops going out when it clears — including any
+    // overpayment she is making, since the clear age assumes it too.
+    mortgageMonthly:
+      monthlyPayment(v.mortgageBalance, v.mortgageRate, v.mortgageYearsLeft) +
+      v.mortgageOverpayment,
     mortgageClearAge: clearAge,
     mortgageClearsBeforeRetiring:
       clearAge !== null && clearAge <= v.retirementAge,

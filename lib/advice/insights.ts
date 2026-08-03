@@ -46,7 +46,7 @@ export function buildInsights(state: AdviceState, d: Derived): Insight[] {
       topic: 'mortgage',
       severity: 'good',
       headline: `Mortgage gone at ${d.mortgageClearAge}, before you stop`,
-      detail: `That frees up ${gbp(d.mortgageMonthly)} a month while you are still working. Those years are the best paid ones you will ever have for topping up a pension.`,
+      detail: `On the figures above, the payment — about ${gbp(d.mortgageMonthly)} a month — stops while you are still earning. Those last working years are the best ones there are for topping up a pension. Change the rate or the years left and this updates.`,
     })
   }
 
@@ -130,7 +130,7 @@ export function buildInsights(state: AdviceState, d: Derived): Insight[] {
       topic: 'mortgage',
       severity: 'watch',
       headline: `The mortgage runs to ${d.mortgageClearAge}, past when you stop`,
-      detail: `That is ${gbp(d.mortgageMonthly)} a month still going out after the income stops. Overpaying now, or working a little longer, both close that gap.`,
+      detail: `On the figures above, that is about ${gbp(d.mortgageMonthly)} a month still going out after the income stops. Overpaying now, or working a little longer, both close that gap.`,
       action: {
         label: 'Try overpaying',
         kind: 'field',

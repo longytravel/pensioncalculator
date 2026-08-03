@@ -73,11 +73,14 @@ export const PAGES: WizardPage[] = [
     id: 'about',
     chapter: 'about',
     title: 'Let&rsquo;s start with the basics',
-    why: 'Two quick things, then we get to the interesting part.',
+    why: 'Three quick things, then we get to the interesting part.',
     skippable: false,
     inputs: [
       { type: 'field', field: 'currentAge' },
       { type: 'field', field: 'retirementAge' },
+      // Asked here rather than assumed: the tax relief sums, the dividend
+      // comparison and the "same as you live on now" anchor all lean on it.
+      { type: 'field', field: 'salary' },
     ],
   },
 
